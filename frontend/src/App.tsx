@@ -7,17 +7,18 @@ import { DataPetaniPage } from './components/DataPetaniPage';
 import { RekomendasiPage } from './components/RekomendasiPage';
 import { ContactPage } from './components/ContactPage';
 import { LandingPage } from './components/LandingPage';
-import { LoginPage } from './components/LoginPage';
-import { TambahPetaniPage } from './components/TambahPetani';
-import { EditPetaniPage } from './components/EditPetani';
+import { TambahPetaniPage } from './components/TambahPetaniPage';
+import { EditPetaniPage } from './components/EditPetaniPage';
+import { DetailPetaniPage } from './components/DetailPetaniPage';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [currentPage, setCurrentPage] = useState('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [editPetaniData, setEditPetaniData] = useState<any>(null);
+  const [detailPetaniData, setDetailPetaniData] = useState<any>(null);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -29,8 +30,11 @@ export default function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setShowLogin(false);
     setCurrentPage('home');
+  };
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
   };
 
   const renderPage = () => {
@@ -41,10 +45,16 @@ export default function App() {
         return <ClusteringPage />;
       case 'data-petani':
         return <DataPetaniPage 
+          isLoggedIn={isLoggedIn}
+          onLogin={handleLogin}
           onNavigateToTambahPetani={() => setCurrentPage('tambah-petani')} 
-          onNavigateToEditPetani={(data) => {
-            setEditPetaniData(data);
-            setCurrentPage('edit-petani');
+          onNavigateToEditPetani={(petaniData) => {
+            setEditPetaniData(petaniData);
+            setCurrentPage("edit-petani");
+          }}
+          onNavigateToDetailPetani={(data) => {
+            setDetailPetaniData(data);
+            setCurrentPage('detail-petani');
           }}
         />;
       case 'rekomendasi':
@@ -58,17 +68,18 @@ export default function App() {
           onBack={() => setCurrentPage('data-petani')} 
           petaniData={editPetaniData}
         />;
+      case 'detail-petani':
+        return <DetailPetaniPage
+          onBack={() => setCurrentPage('data-petani')}
+          petaniData={detailPetaniData}
+        />;
       default:
         return <HomePage />;
     }
   };
 
-  if (!isLoggedIn && !showLogin) {
-    return <LandingPage onLoginClick={() => setShowLogin(true)} />;
-  }
-
-  if (!isLoggedIn && showLogin) {
-    return <LoginPage onLogin={() => setIsLoggedIn(true)} onBack={() => setShowLogin(false)} />;
+  if (showLanding) {
+    return <LandingPage onEnter={() => setShowLanding(false)} />;
   }
 
   return (
@@ -86,8 +97,9 @@ export default function App() {
           isDarkMode={isDarkMode}
           onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
           onLogout={handleLogout}
+          isLoggedIn={isLoggedIn}
         />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 sm:p-6">
           {renderPage()}
         </main>
       </div>

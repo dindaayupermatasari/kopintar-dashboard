@@ -4,10 +4,10 @@ import { Card } from './ui/card';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface LandingPageProps {
-  onLoginClick: () => void;
+  onEnter: () => void;
 }
 
-export function LandingPage({ onLoginClick }: LandingPageProps) {
+export function LandingPage({ onEnter }: LandingPageProps) {
   const features = [
     {
       icon: BarChart3,
@@ -43,10 +43,11 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
             <h3 className="text-[#2d5f3f]">Kopintar</h3>
           </div>
           <Button 
-            onClick={onLoginClick}
-            className="bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59] hover:from-[#3d7050] hover:to-[#5a8c69] text-white"
+            onClick={onEnter}
+            className="bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59] hover:from-[#3d7050] hover:to-[#5a8c69] text-white gap-2"
           >
-            Login / Masuk
+            Masuk Dashboard
+            <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
       </header>
@@ -59,9 +60,11 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
               Kopintar
             </h1>
             <h2 className="text-gray-700 mb-6">
-              Dashboard Analitik dan Monitoring Produksi Kopi Berbasis AI <br />
-              di Kecamatan Doko, Kabupaten Blitar, Jawa Timur
+              Dashboard Analitik dan Monitoring Produksi Kopi Berbasis AI
             </h2>
+            <p className="text-gray-600 mb-2">
+              di Kecamatan Doko, Kabupaten Blitar, Jawa Timur
+            </p>
             <p className="text-gray-600 mb-8 leading-relaxed">
               Platform monitoring dan analisis produktivitas petani kopi yang menggunakan teknologi AI untuk memberikan insight dan rekomendasi yang akurat, membantu meningkatkan kesejahteraan petani kopi di Indonesia.
             </p>
@@ -103,7 +106,7 @@ export function LandingPage({ onLoginClick }: LandingPageProps) {
         </div>
 
         <div className="text-center">
-          <p className="text-gray-500 text-sm">© Kopintar - Dashboard Monitoring Kopi Berbasis AI</p>
+          <p className="text-gray-500 text-sm">© 2025 Kopintas - Dashboard Monitoring Kopi Berbasis AI</p>
         </div>
       </section>
     </div>

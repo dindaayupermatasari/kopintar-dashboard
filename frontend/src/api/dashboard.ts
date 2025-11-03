@@ -1,63 +1,104 @@
-// frontend/api/dashboard.ts
 import api from "./api";
 
-// ===========================
-// 🔹 Ringkasan Dashboard
-// ===========================
+// Summary
 export async function getDashboardSummary() {
-  const token = localStorage.getItem("access_token");
-  const res = await api.get("/dashboard/summary", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  try {
+    const res = await api.get("/dashboard/summary");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching dashboard summary:", error);
+    throw error;
+  }
 }
 
-// ===========================
-// 🔹 Bar & Area Charts
-// ===========================
+// Pie Charts
 export async function getDistribusiJenisKopi() {
-  const token = localStorage.getItem("access_token");
-  const res = await api.get("/dashboard/distribusi-jenis-kopi", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  try {
+    const res = await api.get("/dashboard/distribusi-jenis-kopi");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching jenis kopi:", error);
+    return [];
+  }
 }
 
-export async function getTrenProduksiKopi() {
-  const token = localStorage.getItem("access_token");
-  const res = await api.get("/dashboard/tren-produksi-kopi", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export async function getDistribusiMetodePanen() {
+  try {
+    const res = await api.get("/dashboard/distribusi-metode-panen");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching metode panen:", error);
+    return [];
+  }
 }
 
-// ===========================
-// 🔸 Donut Charts (3 Data)
-// ===========================
-
-// Distribusi Metode Budidaya
-export async function getDistribusiMetodeBudidaya() {
-  const token = localStorage.getItem("access_token");
-  const res = await api.get("/dashboard/distribusi-metode-budidaya", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export async function getDistribusiMetodePengolahan() {
+  try {
+    const res = await api.get("/dashboard/distribusi-metode-pengolahan");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching metode pengolahan:", error);
+    return [];
+  }
 }
 
-// Distribusi Varietas Unggul
-export async function getDistribusiVarietasUnggul() {
-  const token = localStorage.getItem("access_token");
-  const res = await api.get("/dashboard/distribusi-varietas-unggul", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+export async function getDistribusiProsesPengeringan() {
+  try {
+    const res = await api.get("/dashboard/distribusi-proses-pengeringan");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching proses pengeringan:", error);
+    return [];
+  }
 }
 
-// Distribusi Metode Penjualan
 export async function getDistribusiMetodePenjualan() {
-  const token = localStorage.getItem("access_token");
-  const res = await api.get("/dashboard/distribusi-metode-penjualan", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  try {
+    const res = await api.get("/dashboard/distribusi-metode-penjualan");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching metode penjualan:", error);
+    return [];
+  }
+}
+
+// Bar Charts
+export async function getDistribusiVarietasKopi() {
+  try {
+    const res = await api.get("/dashboard/distribusi-varietas-kopi");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching varietas kopi:", error);
+    return [];
+  }
+}
+
+export async function getKelompokTaniVsHasil() {
+  try {
+    const res = await api.get("/dashboard/kelompok-tani-vs-hasil");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching kelompok vs hasil:", error);
+    return [];
+  }
+}
+
+export async function getKelompokTaniVsLahan() {
+  try {
+    const res = await api.get("/dashboard/kelompok-tani-vs-lahan");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching kelompok vs lahan:", error);
+    return [];
+  }
+}
+
+export async function getKelompokTaniVsPopulasi() {
+  try {
+    const res = await api.get("/dashboard/kelompok-tani-vs-populasi");
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching kelompok vs populasi:", error);
+    return [];
+  }
 }

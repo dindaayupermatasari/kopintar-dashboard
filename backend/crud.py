@@ -2,63 +2,116 @@ from typing import List
 from .database import database
 from .schemas import PetaniCreate
 
-TABLE_NAME = "petani"
+TABLE_NAME = "data_raw"
 
+
+# -----------------------
+# GET
+# -----------------------
 async def get_all_petani(skip: int = 0, limit: int = 100) -> List:
-    """Mengambil semua data petani dengan paginasi."""
+    """Ambil semua data petani dari database"""
     query = f'SELECT * FROM {TABLE_NAME} ORDER BY "NO" LIMIT :limit OFFSET :skip'
-    return await database.fetch_all(query, values={"limit": limit, "skip": skip})
+    records = await database.fetch_all(query, values={"limit": limit, "skip": skip})
+    return [dict(row) for row in records]
+
 
 async def get_petani_by_no(petani_no: int):
-    """Mengambil satu data petani berdasarkan 'NO' (Primary Key)."""
+    """Ambil satu data petani berdasarkan NO"""
     query = f'SELECT * FROM {TABLE_NAME} WHERE "NO" = :no'
-    return await database.fetch_one(query, values={"no": petani_no})
+    row = await database.fetch_one(query, values={"no": petani_no})
+    if not row:
+        return None
+    return dict(row)
 
+
+# -----------------------
+# CREATE
+# -----------------------
 async def create_petani(petani: PetaniCreate):
-    """
-    Menambahkan data petani baru. "NO" tidak dimasukkan, database akan membuatnya.
-    """
-    petani_dict = petani.dict(by_alias=True)
+    """Tambah data petani baru"""
+    # Ambil data dari Pydantic model (sudah divalidasi dan diformat oleh validators)
+    data = petani.dict(by_alias=True, exclude_unset=True, exclude_none=True)
 
-    columns = [f'"{col}"' for col in petani_dict.keys()]
-    placeholders = [f':{col.replace(" ", "_").replace("(", "").replace(")", "").replace("/", "_")}' for col in petani_dict.keys()]
-    values_for_query = {ph.strip(':'): val for ph, val in zip(placeholders, petani_dict.values())}
+    # PENTING: Hapus kolom NO agar database generate otomatis
+    data.pop("NO", None)
 
-    # Query ini secara eksplisit meminta 'NO' yang baru dibuat kembali
+    if not data:
+        raise ValueError("Tidak ada data valid untuk disimpan")
+
+    # Ambil NO maksimal yang ada di database dan tambah 1
+    max_no_query = f'SELECT COALESCE(MAX("NO"), 0) + 1 as next_no FROM {TABLE_NAME}'
+    next_no = await database.fetch_val(max_no_query)
+
+    # Tambahkan NO baru ke data
+    data["NO"] = next_no
+
+    # Buat query INSERT dengan semua kolom termasuk NO
+    columns = [f'"{col}"' for col in data.keys()]
+    placeholders = [
+        f':{col.replace(" ", "_").replace("(", "").replace(")", "").replace("/", "_")}'
+        for col in data.keys()
+    ]
+
+    values_for_query = {
+        col.replace(" ", "_").replace("(", "").replace(")", "").replace("/", "_"): v
+        for col, v in data.items()
+    }
+
     query = f"""
-        INSERT INTO {TABLE_NAME} ({', '.join(columns)}) 
+        INSERT INTO {TABLE_NAME} ({', '.join(columns)})
         VALUES ({', '.join(placeholders)})
         RETURNING "NO"
     """
-    
+
     new_petani_no = await database.fetch_val(query, values=values_for_query)
-    
-    return {**petani_dict, "NO": new_petani_no}
+
+    # Return data yang baru dibuat
+    return await get_petani_by_no(new_petani_no)
 
 
+# -----------------------
+# UPDATE
+# -----------------------
 async def update_petani(petani_no: int, petani: PetaniCreate):
-    """Mengupdate data petani."""
-    petani_dict = petani.dict(by_alias=True)
-    
-    # Hapus PK dari dict agar tidak diupdate
-    petani_dict.pop('NO', None)
+    """Update data petani"""
+    # Ambil data dari Pydantic model (sudah divalidasi dan diformat oleh validators)
+    data = petani.dict(by_alias=True, exclude_unset=True, exclude_none=True)
+    data.pop("NO", None)  # Jangan update NO
 
-    update_fields = [f'"{col}" = :{col.replace(" ", "_").replace("(", "").replace(")", "").replace("/", "_")}' for col in petani_dict.keys()]
-    
-    # Membuat 'safe' values dictionary
-    values_for_query = {ph.split(' = ')[1].strip(':'): val for ph, val in zip(update_fields, petani_dict.values())}
-    values_for_query['no'] = petani_no
+    if not data:
+        return await get_petani_by_no(petani_no)
+
+    # Buat query UPDATE
+    update_fields = [
+        f'"{col}" = :{col.replace(" ", "_").replace("(", "").replace(")", "").replace("/", "_")}'
+        for col in data.keys()
+    ]
+
+    values_for_query = {
+        col.replace(" ", "_").replace("(", "").replace(")", "").replace("/", "_"): v
+        for col, v in data.items()
+    }
+    values_for_query["no"] = petani_no
 
     query = f"""
-        UPDATE {TABLE_NAME} SET {', '.join(update_fields)}
+        UPDATE {TABLE_NAME}
+        SET {', '.join(update_fields)}
         WHERE "NO" = :no
     """
-    
-    await database.execute(query, values=values_for_query)
-    return {**petani_dict, "NO": petani_no}
 
+    await database.execute(query, values=values_for_query)
+
+    # Return data yang sudah diupdate
+    return await get_petani_by_no(petani_no)
+
+
+# -----------------------
+# DELETE
+# -----------------------
 async def delete_petani(petani_no: int):
-    """Menghapus data petani."""
-    query = f'DELETE FROM {TABLE_NAME} WHERE "NO" = :no'
-    await database.execute(query, values={"no": petani_no})
-    return {"status": "deleted", "NO": petani_no}
+    """Hapus data petani"""
+    query = f'DELETE FROM {TABLE_NAME} WHERE "NO" = :no RETURNING "NO"'
+    deleted = await database.fetch_val(query, values={"no": petani_no})
+    if deleted is None:
+        return None
+    return {"status": "deleted", "NO": deleted}

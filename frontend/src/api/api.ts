@@ -4,7 +4,10 @@ import axios from "axios";
 
 // Buat koneksi default ke backend FastAPI
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: "http://127.0.0.1:8000",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 api.interceptors.request.use((config) => {
