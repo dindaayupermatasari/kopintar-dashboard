@@ -1,8 +1,8 @@
 import { Mail, MapPin, Clock, MessageCircle, Instagram } from 'lucide-react';
-import { Card } from './ui/card';
-import { Button } from './ui/button';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-export function ContactPage() {
+export default function ContactPage() {
   const contactInfo = [
     {
       icon: Mail,
@@ -34,9 +34,9 @@ export function ContactPage() {
   };
 
   return (
-    <div className="dark:text-gray-100">
+    <div className="dark:text-gray-100 p-8">
       <div className="mb-8">
-        <h1 className="text-[#2d5f3f] dark:text-green-400 mb-2">Hubungi Kami</h1>
+        <h1 className="text-4xl font-bold text-[#2d5f3f] dark:text-green-400 mb-2">Hubungi Kami</h1>
         <p className="text-gray-600 dark:text-gray-400">
           Ada pertanyaan atau butuh bantuan? Tim kami siap membantu Anda
         </p>
@@ -45,7 +45,7 @@ export function ContactPage() {
       <div className="grid grid-cols-2 gap-6 mb-8">
         {/* Contact Info */}
         <Card className="p-6 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] dark:from-[#1a2e23] dark:to-[#2d4a35] text-white shadow-lg border-0 flex flex-col">
-          <h3 className="text-white mb-3">Informasi Kontak</h3>
+          <h3 className="text-2xl font-bold text-white mb-3">Informasi Kontak</h3>
           <p className="text-sm text-white/80 mb-5">
             Hubungi kami melalui berbagai channel yang tersedia.
           </p>
@@ -72,7 +72,7 @@ export function ContactPage() {
         </Card>
 
         {/* WhatsApp Bot & Instagram */}
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-6 h-full">
           {/* WhatsApp Bot Card */}
           <Card className="p-5 bg-white dark:bg-gray-800 shadow-md border-0 flex-1 flex flex-col">
             <div className="flex items-center gap-3 mb-2.5">
@@ -80,11 +80,11 @@ export function ContactPage() {
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-gray-900 dark:text-gray-100">Chat via WhatsApp</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Chat via WhatsApp</h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Respon cepat & otomatis</p>
               </div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 flex-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
               Dapatkan bantuan langsung melalui bot WhatsApp kami. Sistem otomatis kami siap menjawab pertanyaan Anda 24/7.
             </p>
             <Button 
@@ -103,11 +103,11 @@ export function ContactPage() {
                 <Instagram className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-gray-900 dark:text-gray-100">Follow Instagram</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">Follow Instagram</h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400">@sdtpens</p>
               </div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 flex-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
               Ikuti Instagram kami untuk informasi terkini seputar teknologi, kegiatan mahasiswa, dan event di Politeknik Elektronika Negeri Surabaya.
             </p>
             <Button 
@@ -124,7 +124,7 @@ export function ContactPage() {
 
       {/* Map Section */}
       <Card className="p-6 bg-white dark:bg-gray-800 shadow-md border-0">
-        <h3 className="text-gray-900 dark:text-gray-100 mb-4">Lokasi Kami</h3>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Lokasi Kami</h3>
         <div className="w-full h-[400px] bg-gray-100 dark:bg-gray-900/50 rounded-xl overflow-hidden">
           <iframe
             src="https://maps.google.com/maps?q=Politeknik+Elektronika+Negeri+Surabaya&t=&z=15&ie=UTF8&iwloc=&output=embed"
