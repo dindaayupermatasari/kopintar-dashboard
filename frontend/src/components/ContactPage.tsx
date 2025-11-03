@@ -8,7 +8,7 @@ export function ContactPage() {
       icon: Mail,
       title: 'Email',
       value: 'kopintar.doko@gmail.com',
-      link: 'mailto:kopintar.doko@gmail.com',
+      link: 'https://mail.google.com/mail/?view=cm&fs=1&to=kopintar.doko@gmail.com',
       color: 'from-blue-500 to-blue-600',
     },
     {
@@ -57,6 +57,8 @@ export function ContactPage() {
                   <a
                     key={index}
                     href={info.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-start gap-3 p-3 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-200"
                   >
                     <div className={`w-10 h-10 bg-gradient-to-br ${info.color} rounded-lg flex items-center justify-center flex-shrink-0 shadow-md`}>
