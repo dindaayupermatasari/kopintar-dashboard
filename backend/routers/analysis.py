@@ -37,6 +37,7 @@ router = APIRouter(prefix="/analysis", tags=["Analysis & AI"])
 # 🔹 Load Model
 # ======================================================
 def load_model(path, name):
+    """Load model ML dengan error handling"""
     try:
         model = joblib.load(path)
         print(f"✅ {name} berhasil dimuat.")
@@ -69,75 +70,202 @@ except:
 # 🔹 Helper Functions
 # ======================================================
 def parse_harga(value):
-    """Extract angka dari 'Rp 72.000' → 72000"""
-    if not value or value == "-" or pd.isna(value):
-        return None
+    """Ekstrak angka dari string harga seperti 'Rp 72.000' → 72000"""
+    if pd.isna(value) or value is None:
+        return np.nan
+
+    str_val = str(value).strip()
+
+    # Skip jika kosong atau dash
+    if not str_val or str_val == "-":
+        return np.nan
+
     try:
-        if str(value).strip().lower() == "harga jual per kg":
-            return None
-        cleaned = str(value).replace("Rp", "").replace(".", "").replace(",", "").strip()
-        result = float(cleaned) if cleaned else None
-        return result if result and not (np.isinf(result) or np.isnan(result)) else None
-    except:
-        return None
+        # Hapus Rp, titik, koma
+        cleaned = str_val.replace("Rp", "").replace(".", "").replace(",", "").strip()
+
+        if not cleaned:
+            return np.nan
+
+        result = float(cleaned)
+
+        # Return NaN jika tidak valid
+        if np.isinf(result) or np.isnan(result) or result <= 0:
+            return np.nan
+
+        return result
+    except (ValueError, TypeError):
+        return np.nan
 
 
 def parse_number(value):
     """Parse angka biasa dari text"""
-    if not value or value == "-" or pd.isna(value):
-        return None
-    try:
-        if str(value).strip().lower() in [
-            "hasil per tahun (kg)",
-            "total lahan (m2)",
-            "jumlah lahan",
-            "populasi kopi",
-            "lama bertani",
-            "harga jual per kg",
-        ]:
-            return None
+    if pd.isna(value) or value is None:
+        return np.nan
 
-        if isinstance(value, (int, float)):
-            result = float(value)
-        else:
-            cleaned = re.sub(r"[^\d.]", "", str(value))
-            result = float(cleaned) if cleaned else None
-        return result if result and not (np.isinf(result) or np.isnan(result)) else None
-    except:
-        return None
+    # Jika sudah berupa angka
+    if isinstance(value, (int, float)):
+        result = float(value)
+        if np.isinf(result) or np.isnan(result) or result <= 0:
+            return np.nan
+        return result
+
+    str_val = str(value).strip()
+
+    # Skip jika kosong atau dash
+    if not str_val or str_val == "-":
+        return np.nan
+
+    try:
+        # Hapus semua non-numeric kecuali titik desimal
+        cleaned = re.sub(r"[^\d.]", "", str_val)
+
+        if not cleaned:
+            return np.nan
+
+        result = float(cleaned)
+
+        # Return NaN jika tidak valid
+        if np.isinf(result) or np.isnan(result) or result <= 0:
+            return np.nan
+
+        return result
+    except (ValueError, TypeError):
+        return np.nan
 
 
 def safe_float(value, default=0.0):
-    """Convert to float safely"""
+    """Konversi ke float dengan aman"""
     try:
-        result = float(value) if not pd.isna(value) else default
+        if pd.isna(value):
+            return default
+        result = float(value)
         return default if (np.isinf(result) or np.isnan(result)) else result
     except:
         return default
 
 
 def get_mode_value(series):
+    """Dapatkan modus (nilai paling sering muncul)"""
+    # Hapus NaN dan string kosong
     series_clean = series.dropna()
+    series_clean = series_clean[series_clean.astype(str).str.strip() != ""]
+    series_clean = series_clean[series_clean.astype(str).str.strip() != "-"]
+
     if len(series_clean) == 0:
         return "N/A"
+
     mode_result = series_clean.mode()
-    return str(mode_result.iloc[0]) if len(mode_result) > 0 else "N/A"
+
+    if len(mode_result) > 0:
+        return str(mode_result.iloc[0])
+    return "N/A"
 
 
 def get_nama_column(df):
-    for col_name in ["NAMA", "nama", "Nama", "NAMA text"]:
+    """Cari kolom NAMA dengan berbagai variasi"""
+    # Coba exact match dulu
+    for col_name in ["NAMA", "nama", "Nama"]:
         if col_name in df.columns:
+            print(f"✅ Kolom NAMA ditemukan: '{col_name}'")
             return col_name
+
+    # Coba partial match
     for col in df.columns:
-        if "NAMA" in str(col).upper():
+        col_upper = str(col).upper()
+        if "NAMA" in col_upper:
+            print(f"✅ Kolom NAMA ditemukan (parsial): '{col}'")
             return col
+
+    print("⚠️ Kolom NAMA tidak ditemukan")
     return None
 
 
+def remove_header_rows(df):
+    """Deteksi dan hapus baris yang berisi header sebagai data"""
+    if len(df) == 0:
+        return df
+
+    rows_to_drop = []
+
+    # Hanya cek 3 baris pertama (header biasanya di awal)
+    for idx in range(min(3, len(df))):
+        row = df.iloc[idx]
+
+        # Cek beberapa kolom kunci saja untuk efisiensi
+        key_columns = [
+            "NAMA",
+            "HASIL PER TAHUN (kg)",
+            "HARGA JUAL PER KG",
+            "POPULASI KOPI",
+        ]
+        matching = 0
+
+        for col in key_columns:
+            if col in df.columns:
+                cell_value = str(row[col]).strip().upper()
+                col_name = str(col).strip().upper()
+
+                if cell_value == col_name:
+                    matching += 1
+
+        # Jika 3 dari 4 kolom kunci match, ini header row
+        if matching >= 3:
+            rows_to_drop.append(idx)
+            print(f"⚠️ Terdeteksi baris header di index {idx}")
+
+    if rows_to_drop:
+        df = df.drop(df.index[rows_to_drop]).reset_index(drop=True)
+        print(f"📊 {len(rows_to_drop)} baris header dihapus. Data tersisa: {len(df)}")
+
+    return df
+
+
+def clean_numeric_columns(df, numeric_cols):
+    """Bersihkan kolom numerik dengan logging detail"""
+    for col in numeric_cols:
+        if col not in df.columns:
+            print(f"⚠️ Kolom '{col}' tidak ditemukan, skip")
+            continue
+
+        print(f"\n🔧 Membersihkan kolom: {col}")
+        print(f"   Sebelum - Sample: {df[col].head(3).tolist()}")
+        print(f"   Sebelum - Type: {df[col].dtype}")
+
+        # Terapkan parser yang sesuai
+        if "HARGA" in col:
+            df[col] = df[col].apply(parse_harga)
+        else:
+            df[col] = df[col].apply(parse_number)
+
+        # Hitung nilai valid
+        valid_count = df[col].notna().sum()
+        print(f"   Nilai valid: {valid_count}/{len(df)}")
+
+        # Isi NaN dengan median jika ada nilai valid
+        if valid_count > 0:
+            median_val = df[col].median()
+            print(f"   Median: {median_val}")
+            df[col].fillna(median_val, inplace=True)
+        else:
+            print(f"   ⚠️ Tidak ada nilai valid, isi dengan 0")
+            df[col].fillna(0, inplace=True)
+
+        print(f"   Sesudah - Sample: {df[col].head(3).tolist()}")
+
+    return df
+
+
 def summarize_cluster(df, group_col, numeric_cols, categorical_cols, nama_col):
-    """Ringkasan tiap cluster"""
+    """Ringkasan tiap cluster
+    - Kolom numerik: dihitung dengan mean (rata-rata)
+    - Kolom kategori: dihitung dengan modus (nilai terbanyak)
+    - Kolom NAMA: ambil daftar nama petani unik
+    """
     summary_rows = []
+
     if group_col not in df.columns:
+        print(f"⚠️ Kolom group '{group_col}' tidak ditemukan")
         return pd.DataFrame()
 
     grouped = df.groupby(group_col)
@@ -145,24 +273,32 @@ def summarize_cluster(df, group_col, numeric_cols, categorical_cols, nama_col):
     for cluster_id, group in grouped:
         summary = {"cluster": int(cluster_id)}
 
-        # Numeric: rata-rata
+        # Kolom numerik: hitung rata-rata (mean)
         for col in numeric_cols:
             if col in group.columns:
                 val = group[col].mean()
                 summary[col] = round(val, 2) if pd.notna(val) else 0
 
-        # Categorical: modus
+        # Kolom kategori: hitung modus (nilai paling sering)
         for col in categorical_cols:
             if col in group.columns:
-                mode_series = group[col].mode()
-                summary[col] = mode_series.iloc[0] if not mode_series.empty else "N/A"
+                summary[col] = get_mode_value(group[col])
 
-        # Daftar petani
+        # Kolom NAMA: ambil daftar nama petani unik
         if nama_col and nama_col in group.columns:
+            names = group[nama_col].dropna().astype(str).unique().tolist()
+            # Filter nama yang valid
             summary["daftar_petani"] = [
                 n.strip()
-                for n in group[nama_col].dropna().astype(str).unique().tolist()
-                if n.strip() and n.strip().upper() != "NAMA"
+                for n in names
+                if n.strip()
+                and n.strip().upper() != "NAMA"  # Skip jika header
+                and n.strip() != ""
+                and n.strip() != "-"
+                and not any(
+                    keyword in n.upper()
+                    for keyword in ["HASIL", "HARGA", "LAHAN", "METODE"]
+                )
             ]
         else:
             summary["daftar_petani"] = []
@@ -187,12 +323,42 @@ async def cluster_produk_budidaya():
         if not rows:
             return {"message": "Tidak ada data.", "clusters": [], "total_petani": 0}
 
-        df = pd.DataFrame.from_records(rows, columns=rows[0].keys())
+        # PERBAIKAN: Jangan gunakan rows[0].keys() karena bisa ambil data sebagai header
+        # Langsung convert ke DataFrame, pandas akan otomatis ambil column names
+        df = pd.DataFrame([dict(row) for row in rows])
+
+        print(f"\n📊 Total data awal: {len(df)}")
+        print(f"📋 Kolom tersedia: {df.columns.tolist()}")
+        print(f"🔍 Sample data (3 baris pertama):")
+        print(df[["NO", "NAMA", "HASIL PER TAHUN (kg)", "HARGA JUAL PER KG"]].head(3))
+
+        # PERBAIKAN: Hapus baris header yang muncul sebagai data (jika ada)
+        df = remove_header_rows(df)
+
+        # Validasi: Pastikan masih ada data setelah pembersihan
+        if len(df) == 0:
+            return {
+                "message": "Tidak ada data valid setelah pembersihan.",
+                "clusters": [],
+                "total_petani": 0,
+            }
+
+        # Cari kolom NAMA
         nama_col = get_nama_column(df)
 
-        if len(df) >= 14:
-            df = df.drop(df.index[13]).reset_index(drop=True)
+        # Debug: Tampilkan sample data setelah pembersihan
+        print(f"\n🔍 Sample data setelah pembersihan (3 baris pertama):")
+        sample_cols = [
+            "NAMA",
+            "HASIL PER TAHUN (kg)",
+            "HARGA JUAL PER KG",
+            "POPULASI KOPI",
+        ]
+        available_cols = [col for col in sample_cols if col in df.columns]
+        if available_cols:
+            print(df[available_cols].head(3).to_string())
 
+        # Definisi kolom
         numeric_cols = [
             "HASIL PER TAHUN (kg)",
             "TOTAL LAHAN (M2)",
@@ -202,61 +368,59 @@ async def cluster_produk_budidaya():
             "LAMA BERTANI",
         ]
 
-        categorical_cols_budidaya = [
+        # PENTING: Tambahkan kolom yang dibutuhkan model ML
+        categorical_cols = [
             "METODE BUDIDAYA",
             "PUPUK",
             "METODE PANEN",
             "SISTEM IRIGASI",
+            "SISTEM PENYIMPANAN",  # Ditambahkan karena model butuh ini
+            "METODE PENGOLAHAN",  # Ditambahkan karena model butuh ini
         ]
 
-        categorical_cols_missing = [
-            "SISTEM PENYIMPANAN",
-            "METODE PENGOLAHAN",
-        ]
+        # Bersihkan kolom numerik
+        df = clean_numeric_columns(df, numeric_cols)
 
-        all_categorical_cols = categorical_cols_budidaya + categorical_cols_missing
-        summary_categorical_cols = categorical_cols_budidaya + categorical_cols_missing
-
-        # Pembersihan data
-        for col in numeric_cols:
-            if col in df.columns:
-                df[col] = df[col].apply(parse_harga if "HARGA" in col else parse_number)
-                if df[col].notna().sum() > 0:
-                    df[col].fillna(df[col].median(), inplace=True)
-                else:
-                    df[col].fillna(1.0, inplace=True)
-
-        for col in all_categorical_cols:
+        # Bersihkan kolom kategori
+        for col in categorical_cols:
             if col not in df.columns:
+                print(f"⚠️ Kolom '{col}' tidak ditemukan, buat dengan N/A")
                 df[col] = "N/A"
             else:
-                df[col].fillna(get_mode_value(df[col]), inplace=True)
+                # Isi NaN dengan modus
+                mode_val = get_mode_value(df[col])
+                df[col].fillna(mode_val, inplace=True)
 
+        # Siapkan fitur untuk clustering
         clustering_features = [
-            col for col in numeric_cols + all_categorical_cols if col in df.columns
+            col for col in numeric_cols + categorical_cols if col in df.columns
         ]
         X_features = df[clustering_features].copy()
 
-        # Transform dan clustering
-        X_transformed = FULL_PIPELINE_PRODUK_BUDIDAYA.named_steps[
-            "preprocessor"
-        ].transform(X_features)
-
-        # ✅ FIX: Gunakan fit_predict untuk AgglomerativeClustering
+        # Transform dan cluster
+        preprocessor = FULL_PIPELINE_PRODUK_BUDIDAYA.named_steps["preprocessor"]
         clusterer = FULL_PIPELINE_PRODUK_BUDIDAYA.named_steps["clusterer"]
+
+        X_transformed = preprocessor.transform(X_features)
+
+        # Gunakan fit_predict untuk AgglomerativeClustering
         if hasattr(clusterer, "predict"):
             labels = clusterer.predict(X_transformed)
         else:
-            # Untuk AgglomerativeClustering atau model tanpa predict()
             labels = clusterer.fit_predict(X_transformed)
 
         df["cluster"] = labels
 
+        print(f"\n🎯 Clustering selesai:")
+        print(f"   Cluster unik: {df['cluster'].unique()}")
+        print(f"   Jumlah per cluster: {df['cluster'].value_counts().to_dict()}")
+
         # Karakteristik cluster
         cluster_characteristics = summarize_cluster(
-            df, "cluster", numeric_cols, summary_categorical_cols, nama_col
+            df, "cluster", numeric_cols, categorical_cols, nama_col
         )
 
+        # Ringkasan cluster
         cluster_summary_df = (
             df.groupby("cluster")[["HASIL PER TAHUN (kg)", "TOTAL LAHAN (M2)"]]
             .mean()
@@ -265,19 +429,24 @@ async def cluster_produk_budidaya():
         )
 
         def label_productivity(avg):
-            if avg >= 800:
+            if avg is None or avg <= 0:
+                return "Tidak Termasuk Cluster"
+            elif avg >= 800:
                 return "Produktivitas Sangat Tinggi"
-            elif avg >= 500:
+            elif 600 <= avg < 800:
                 return "Produktivitas Tinggi"
-            elif avg >= 200:
+            elif 400 <= avg < 600:
                 return "Produktivitas Sedang"
-            else:
+            elif 200 <= avg < 400:
                 return "Produktivitas Rendah"
+            else:
+                return "Sangat Rendah"
 
         cluster_summary_df["label"] = cluster_summary_df["HASIL PER TAHUN (kg)"].apply(
             label_productivity
         )
 
+        # Gabungkan karakteristik dengan label
         cluster_characteristics = cluster_characteristics.merge(
             cluster_summary_df[["cluster", "label"]], on="cluster", how="left"
         )
@@ -303,12 +472,6 @@ async def cluster_produk_budidaya():
                     "label": row["label"],
                     "petani_count": petani_count.get(cid, 0),
                     "persentase": round((petani_count.get(cid, 0) / len(df)) * 100, 1),
-                    "avg_produktivitas_kg": round(
-                        safe_float(row["HASIL PER TAHUN (kg)"], 0), 2
-                    ),
-                    "avg_luas_lahan_m2": round(
-                        safe_float(row["TOTAL LAHAN (M2)"], 0), 2
-                    ),
                     "karakteristik": {
                         "avg_produktivitas_kg": round(
                             safe_float(char_dict.get("HASIL PER TAHUN (kg)", 0), 0), 2
@@ -329,6 +492,12 @@ async def cluster_produk_budidaya():
                     },
                     "petani_names": char_dict.get("daftar_petani", []),
                 }
+            )
+
+        print(f"\n✅ Berhasil membuat {len(clusters_data)} cluster")
+        for cluster in clusters_data:
+            print(
+                f"   Cluster {cluster['cluster_id']}: {cluster['petani_count']} petani, {len(cluster['petani_names'])} nama"
             )
 
         return JSONResponse(
@@ -365,31 +534,25 @@ async def cluster_profil_pasar():
         if not rows:
             return {"message": "Tidak ada data.", "clusters": [], "total_petani": 0}
 
-        df = pd.DataFrame.from_records(rows, columns=rows[0].keys())
+        # PERBAIKAN: Convert dengan benar
+        df = pd.DataFrame([dict(row) for row in rows])
+
+        print(f"\n📊 Total data awal: {len(df)}")
+        print(f"🔍 Sample data (3 baris pertama):")
+        print(df[["NO", "NAMA", "HARGA JUAL PER KG"]].head(3))
+
+        # PENTING: Hapus baris header yang muncul sebagai data
+        df = remove_header_rows(df)
+
+        # Cari kolom NAMA
         nama_col = get_nama_column(df)
 
+        # Drop baris 14 jika ada
         if len(df) >= 14:
             df = df.drop(df.index[13]).reset_index(drop=True)
+            print(f"📊 Data setelah drop baris 13: {len(df)}")
 
-        # Normalisasi nama kolom
-        rename_map = {
-            "harga jual per kg": "HARGA JUAL PER KG",
-            "lama fermentasi": "LAMA FERMENTASI",
-            "proses pengeringan": "PROSES PENGERINGAN",
-            "metode penjualan": "METODE PENJUALAN",
-            "bentuk penyimpanan": "BENTUK PENYIMPANAN",
-            "sistem penyimpanan": "SISTEM PENYIMPANAN",
-            "metode pengolahan": "METODE PENGOLAHAN",
-        }
-        df.columns = [
-            (
-                rename_map.get(c.lower().strip(), c)
-                if c.lower().strip() in rename_map
-                else c
-            )
-            for c in df.columns
-        ]
-
+        # Definisi kolom
         numeric_cols = ["HARGA JUAL PER KG"]
         categorical_cols = [
             "LAMA FERMENTASI",
@@ -400,30 +563,30 @@ async def cluster_profil_pasar():
             "METODE PENGOLAHAN",
         ]
 
-        # Pembersihan data
-        for col in numeric_cols:
-            if col in df.columns:
-                df[col] = df[col].apply(parse_harga)
-                if df[col].notna().sum() > 0:
-                    df[col].fillna(df[col].median(), inplace=True)
-                else:
-                    df[col].fillna(1.0, inplace=True)
+        # Bersihkan kolom numerik
+        df = clean_numeric_columns(df, numeric_cols)
 
+        # Bersihkan kolom kategori
         for col in categorical_cols:
-            if col in df.columns:
-                df[col].fillna(get_mode_value(df[col]), inplace=True)
+            if col not in df.columns:
+                print(f"⚠️ Kolom '{col}' tidak ditemukan, buat dengan N/A")
+                df[col] = "N/A"
+            else:
+                mode_val = get_mode_value(df[col])
+                df[col].fillna(mode_val, inplace=True)
 
+        # Siapkan fitur
         clustering_features = [
             col for col in numeric_cols + categorical_cols if col in df.columns
         ]
         X_clustering = df[clustering_features].copy()
 
-        X_processed = FULL_PIPELINE_PROFIL_PASAR.named_steps["preprocessor"].transform(
-            X_clustering
-        )
-
-        # ✅ FIX: Gunakan fit_predict
+        # Transform dan cluster
+        preprocessor = FULL_PIPELINE_PROFIL_PASAR.named_steps["preprocessor"]
         clusterer = FULL_PIPELINE_PROFIL_PASAR.named_steps["clusterer"]
+
+        X_processed = preprocessor.transform(X_clustering)
+
         if hasattr(clusterer, "predict"):
             labels = clusterer.predict(X_processed)
         else:
@@ -431,6 +594,7 @@ async def cluster_profil_pasar():
 
         df["cluster"] = labels
 
+        # Karakteristik cluster
         cluster_characteristics = summarize_cluster(
             df, "cluster", numeric_cols, categorical_cols, nama_col
         )
@@ -444,11 +608,13 @@ async def cluster_profil_pasar():
 
         def label_market(avg_price):
             if avg_price >= 75000:
-                return "Pasar Premium"
-            elif avg_price >= 70000:
-                return "Pasar Semi-Premium"
+                return "Petani Berpengalaman dan Pasar Premium"
+            elif avg_price >= 74000:
+                return "Petani Modern dan Pasar Semi-Premium"
+            elif avg_price >= 73000:
+                return "Petani Konvensional dan Pasar Lokal"
             else:
-                return "Pasar Lokal Tradisional"
+                return "Tidak termasuk cluster"
 
         cluster_summary_df["label"] = cluster_summary_df["HARGA JUAL PER KG"].apply(
             label_market
@@ -458,6 +624,7 @@ async def cluster_profil_pasar():
             cluster_summary_df[["cluster", "label"]], on="cluster", how="left"
         )
 
+        # Format output
         clusters_data = []
         petani_count = df["cluster"].value_counts().to_dict()
 
@@ -478,7 +645,6 @@ async def cluster_profil_pasar():
                     "label": row["label"],
                     "petani_count": petani_count.get(cid, 0),
                     "persentase": round((petani_count.get(cid, 0) / len(df)) * 100, 1),
-                    "avg_harga_jual": round(safe_float(row["HARGA JUAL PER KG"], 0), 2),
                     "karakteristik": {
                         "avg_harga_jual": round(
                             safe_float(char_dict.get("HARGA JUAL PER KG", 0), 0), 2
@@ -500,6 +666,8 @@ async def cluster_profil_pasar():
                 }
             )
 
+        print(f"\n✅ Berhasil membuat {len(clusters_data)} cluster")
+
         return JSONResponse(
             content=jsonable_encoder(
                 {
@@ -517,7 +685,6 @@ async def cluster_profil_pasar():
 
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error clustering: {str(e)}")
-    # ... (sisa error handling)
 
 
 # ======================================================
@@ -680,7 +847,9 @@ PENTING:
         )
 
 
-# Wordcloud
+# ======================================================
+# 📊 WORDCLOUD
+# ======================================================
 @router.get("/wordcloud-data")
 async def get_wordcloud_data():
     """Word cloud dari kolom masalah petani + laporan masalah yang VALID."""
@@ -793,9 +962,12 @@ async def get_wordcloud_pelatihan():
     ]
 
 
-# Laporan Masalah
+# ======================================================
+# 📝 LAPORAN MASALAH
+# ======================================================
 @router.post("/laporan-masalah")
 async def create_laporan_masalah(request: LaporanMasalahRequest):
+    """Membuat laporan masalah baru dari petani"""
     try:
         query = """
         INSERT INTO laporan_masalah (nama_petani, masalah, detail_petani, status)
@@ -910,9 +1082,12 @@ async def validate_laporan(request: ValidateLaporanRequest):
         )
 
 
-# Health check
+# ======================================================
+# 🏥 HEALTH CHECK
+# ======================================================
 @router.get("/health")
 async def health_check():
+    """Cek status kesehatan sistem dan model"""
     return {
         "status": "healthy",
         "models": {

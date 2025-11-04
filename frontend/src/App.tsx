@@ -5,14 +5,14 @@ import { HomePage } from './components/HomePage';
 import { ClusteringPage } from './components/ClusteringPage';
 import { DataPetaniPage } from './components/DataPetaniPage';
 import { RekomendasiPage } from './components/RekomendasiPage';
-import { ContactPage } from './components/ContactPage';
+import ContactPage from './components/ContactPage';
 import { LandingPage } from './components/LandingPage';
 import { TambahPetaniPage } from './components/TambahPetaniPage';
 import { EditPetaniPage } from './components/EditPetaniPage';
 import { DetailPetaniPage } from './components/DetailPetaniPage';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access_token"));
   const [showLanding, setShowLanding] = useState(true);
   const [currentPage, setCurrentPage] = useState('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -29,13 +29,18 @@ export default function App() {
   }, [isDarkMode]);
 
   const handleLogout = () => {
+    localStorage.removeItem("access_token");
     setIsLoggedIn(false);
     setCurrentPage('home');
   };
 
-  const handleLogin = () => {
+  const handleLoginSuccess = () => {
     setIsLoggedIn(true);
   };
+
+  // const handleLogin = () => {
+  //   setIsLoggedIn(true);
+  // };
 
   const renderPage = () => {
     switch (currentPage) {
@@ -46,7 +51,7 @@ export default function App() {
       case 'data-petani':
         return <DataPetaniPage 
           isLoggedIn={isLoggedIn}
-          onLogin={handleLogin}
+          onLoginSuccess={handleLoginSuccess} // ✅ Pass callback
           onNavigateToTambahPetani={() => setCurrentPage('tambah-petani')} 
           onNavigateToEditPetani={(petaniData) => {
             setEditPetaniData(petaniData);
@@ -97,7 +102,7 @@ export default function App() {
           isDarkMode={isDarkMode}
           onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
           onLogout={handleLogout}
-          isLoggedIn={isLoggedIn}
+          isLoggedIn={isLoggedIn} // ✅ Pass isLoggedIn state
         />
         <main className="flex-1 p-4 sm:p-6">
           {renderPage()}

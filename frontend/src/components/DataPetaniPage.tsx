@@ -34,11 +34,15 @@ import { LoginDialog } from "./LoginDialog";
 import * as XLSX from "xlsx";
 
 interface DataPetaniPageProps {
+  isLoggedIn: boolean;
+  onLoginSuccess: () => void;
   onNavigateToTambahPetani?: () => void;
   onNavigateToEditPetani?: (petaniData: any) => void;
 }
 
 export function DataPetaniPage({
+  isLoggedIn: isLoggedInProp,
+  onLoginSuccess,
   onNavigateToTambahPetani,
   onNavigateToEditPetani,
 }: DataPetaniPageProps) {
@@ -50,7 +54,7 @@ export function DataPetaniPage({
   const [deleteConfirmData, setDeleteConfirmData] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access_token"));
+  const isLoggedIn = isLoggedInProp;
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: string; data?: any } | null>(null);
 
@@ -77,7 +81,10 @@ export function DataPetaniPage({
       setPetaniData(normalized);
     } catch (error: any) {
       console.error("❌ Gagal memuat data petani:", error);
-      if (error.response?.status === 401) setIsLoggedIn(false);
+      if (error.response?.status === 401) {
+        console.warn("⚠️ Unauthorized - Token mungkin expired");
+        localStorage.removeItem("access_token");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -207,9 +214,12 @@ export function DataPetaniPage({
 
   // === Login & CRUD Handlers ===
   const handleLoginSuccess = (token: string) => {
-    localStorage.setItem("access_token", token);
-    setIsLoggedIn(true);
-    setShowLoginDialog(false);
+     console.log('✅ Login success in DataPetaniPage');
+     localStorage.setItem("access_token", token);
+     
+     // ✅ Panggil callback dari App.tsx untuk update state
+     onLoginSuccess();
+     setShowLoginDialog(false);
 
     if (pendingAction) {
       switch (pendingAction.type) {
@@ -415,17 +425,29 @@ export function DataPetaniPage({
       />
 
       {/* === KONFIRMASI HAPUS === */}
+      {/* === KONFIRMASI HAPUS === */}
       <AlertDialog open={!!deleteConfirmData} onOpenChange={() => setDeleteConfirmData(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[420px] dark:bg-[#242424] dark:border-white/10">
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Data Petani?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus data petani <strong>{deleteConfirmData?.nama}</strong>? Tindakan ini tidak dapat dibatalkan.
+            <AlertDialogTitle className="dark:text-[#e5e5e5]">
+              Konfirmasi Hapus Data
+            </AlertDialogTitle>
+            <AlertDialogDescription className="dark:text-[#a3a3a3]">
+              Apakah Anda yakin ingin menghapus data petani{" "}
+              <span className="font-semibold dark:text-[#e5e5e5]">
+                {deleteConfirmData?.nama}
+              </span>? Tindakan ini tidak dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} disabled={isDeleting} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogCancel className="dark:border-white/10 dark:hover:bg-[#1a2e23]">
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white"
+            >
               {isDeleting ? "Menghapus..." : "Hapus"}
             </AlertDialogAction>
           </AlertDialogFooter>

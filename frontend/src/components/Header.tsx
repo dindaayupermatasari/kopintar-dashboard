@@ -13,22 +13,18 @@ interface HeaderProps {
   isSidebarOpen: boolean;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
+  onLogout: () => void;
+  isLoggedIn: boolean;
 }
 
 export function Header({ 
   onToggleSidebar, 
   isSidebarOpen, 
   isDarkMode, 
-  onToggleDarkMode 
+  onToggleDarkMode,
+  onLogout,
+  isLoggedIn
 }: HeaderProps) {
-  
-  const handleLogout = () => {
-    // Hapus token dari localStorage
-    localStorage.removeItem("access_token");
-    
-    // Reload page untuk reset state
-    window.location.reload();
-  };
 
   return (
     <header className="bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-white/10 px-6 py-4 shadow-sm sticky top-0 z-30">
@@ -41,8 +37,17 @@ export function Header({
             <Menu className="w-5 h-5 text-gray-600 dark:text-[#e5e5e5]" />
           </button>
           <div>
-            <p className="text-sm text-gray-500 dark:text-[#a3a3a3]">Selamat Datang Kembali,</p>
-            <h3 className="text-lg font-semibold text-[#2d5f3f] dark:text-[#b88746]">Admin</h3>
+            {isLoggedIn ? (
+              <>
+                <p className="text-sm text-gray-500 dark:text-[#a3a3a3]">Selamat datang kembali,</p>
+                <h3 className="text-lg font-semibold text-[#2d5f3f] dark:text-[#b88746]">Admin</h3>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-gray-500 dark:text-[#a3a3a3]">Selamat datang,</p>
+                <h3 className="text-lg font-semibold text-[#2d5f3f] dark:text-[#b88746]">Pengunjung</h3>
+              </>
+            )}
           </div>
         </div>
         
@@ -59,33 +64,35 @@ export function Header({
             )}
           </button>
 
-          {/* User Dropdown Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="ml-2 flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-[#1a2e23] px-3 py-2 rounded-xl transition-colors">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] dark:from-[#b88746] dark:to-[#d4a373] rounded-xl flex items-center justify-center shadow-sm">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-sm text-left">
-                  <p className="text-gray-900 dark:text-[#e5e5e5] font-medium">Admin</p>
-                  <p className="text-xs text-gray-500 dark:text-[#a3a3a3]">Administrator</p>
-                </div>
-                <ChevronDown className="w-4 h-4 text-gray-500 dark:text-[#a3a3a3]" />
-              </button>
-            </DropdownMenuTrigger>
-            
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span className="font-medium">Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* User Dropdown Menu - Hanya muncul jika sudah login */}
+          {isLoggedIn && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-3 pl-3 ml-2 border-l border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-[#1a2e23] px-3 py-2 rounded-xl transition-colors">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] dark:from-[#b88746] dark:to-[#d4a373] rounded-xl flex items-center justify-center shadow-sm">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-sm text-left hidden sm:block">
+                    <p className="text-gray-900 dark:text-[#e5e5e5] font-medium">Admin</p>
+                    <p className="text-xs text-gray-500 dark:text-[#a3a3a3]">Administrator</p>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-gray-500 dark:text-[#a3a3a3] hidden sm:block" />
+                </button>
+              </DropdownMenuTrigger>
+              
+              <DropdownMenuContent align="end" className="w-48 dark:bg-[#242424] dark:border-white/10">
+                <DropdownMenuLabel className="dark:text-[#e5e5e5]">Akun Saya</DropdownMenuLabel>
+                <DropdownMenuSeparator className="dark:bg-white/10" />
+                <DropdownMenuItem 
+                  className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20"
+                  onClick={onLogout}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span className="font-medium">Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </header>

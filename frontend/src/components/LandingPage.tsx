@@ -106,7 +106,7 @@ export function LandingPage({ onEnter }: LandingPageProps) {
         </div>
 
         <div className="text-center">
-          <p className="text-gray-500 text-sm">© 2025 Kopintas - Dashboard Monitoring Kopi Berbasis AI</p>
+          <p className="text-gray-500 text-sm">©Kopintar - Dashboard Monitoring Kopi Berbasis AI</p>
         </div>
       </section>
     </div>

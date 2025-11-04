@@ -193,3 +193,7 @@
 html {
   font-size: var(--font-size);
 }
+
+html, body {
+  overflow-x: hidden;
+}

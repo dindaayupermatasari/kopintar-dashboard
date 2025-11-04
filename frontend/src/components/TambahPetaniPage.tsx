@@ -381,8 +381,8 @@ export function TambahPetaniPage({ onBack }: TambahPetaniPageProps) {
               <Select value={formData.metodeBudidaya} onValueChange={(value) => setFormData({ ...formData, metodeBudidaya: value })}>
                 <SelectTrigger className="border-gray-300 dark:border-white/10"><SelectValue placeholder="Pilih metode" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Kombinasi">Kombinasi</SelectItem>
-                  <SelectItem value="Tradisional">Tradisional</SelectItem>
+                  <SelectItem value="Kombinasi">kombinasi</SelectItem>
+                  <SelectItem value="Tradisional">organik</SelectItem>
                   <SelectItem value="Lainnya">Lainnya</SelectItem>
                 </SelectContent>
               </Select>
@@ -393,9 +393,9 @@ export function TambahPetaniPage({ onBack }: TambahPetaniPageProps) {
               <Select value={formData.pupuk} onValueChange={(value) => setFormData({ ...formData, pupuk: value })}>
                 <SelectTrigger className="border-gray-300 dark:border-white/10"><SelectValue placeholder="Pilih pupuk" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Kombinasi">Kombinasi</SelectItem>
-                  <SelectItem value="Organik">Organik</SelectItem>
-                  <SelectItem value="Kimia">Kimia</SelectItem>
+                  <SelectItem value="Kombinasi">kombinasi</SelectItem>
+                  <SelectItem value="Organik">organik</SelectItem>
+                  <SelectItem value="Kimia">kimia</SelectItem>
                   <SelectItem value="Lainnya">Lainnya</SelectItem>
                 </SelectContent>
               </Select>
@@ -432,8 +432,8 @@ export function TambahPetaniPage({ onBack }: TambahPetaniPageProps) {
               <Select value={formData.metodePanen} onValueChange={(value) => setFormData({ ...formData, metodePanen: value })}>
                 <SelectTrigger className="border-gray-300 dark:border-white/10"><SelectValue placeholder="Pilih metode panen" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Petik Selektif">Petik Selektif</SelectItem>
-                  <SelectItem value="Petik Merah">Petik Merah</SelectItem>
+                  <SelectItem value="Petik Selektif">petik selektif</SelectItem>
+                  <SelectItem value="Petik Merah">petik merah</SelectItem>
                   <SelectItem value="Lainnya">Lainnya</SelectItem>
                 </SelectContent>
               </Select>
@@ -456,9 +456,9 @@ export function TambahPetaniPage({ onBack }: TambahPetaniPageProps) {
               <Select value={formData.alatPengolahan} onValueChange={(value) => setFormData({ ...formData, alatPengolahan: value })}>
                 <SelectTrigger className="border-gray-300 dark:border-white/10"><SelectValue placeholder="Pilih alat" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Pulper">Pulper</SelectItem>
-                  <SelectItem value="Fermentasi">Fermentasi</SelectItem>
-                  <SelectItem value="Tidak Punya">Tidak Punya</SelectItem>
+                  <SelectItem value="Pulper">pulper</SelectItem>
+                  <SelectItem value="Fermentasi">fermentasi</SelectItem>
+                  <SelectItem value="Tidak Punya">tidak punya</SelectItem>
                   <SelectItem value="Lainnya">Lainnya</SelectItem>
                 </SelectContent>
               </Select>
@@ -484,9 +484,9 @@ export function TambahPetaniPage({ onBack }: TambahPetaniPageProps) {
               <Select value={formData.prosesPengeringan} onValueChange={(value) => setFormData({ ...formData, prosesPengeringan: value })}>
                 <SelectTrigger className="border-gray-300 dark:border-white/10"><SelectValue placeholder="Pilih proses" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Lantai">Lantai</SelectItem>
-                  <SelectItem value="Widek">Widek</SelectItem>
-                  <SelectItem value="Terpal">Terpal</SelectItem>
+                  <SelectItem value="Lantai">lantai</SelectItem>
+                  <SelectItem value="Widek">widek</SelectItem>
+                  <SelectItem value="Terpal">terpal</SelectItem>
                   <SelectItem value="Lainnya">Lainnya</SelectItem>
                 </SelectContent>
               </Select>
@@ -497,10 +497,10 @@ export function TambahPetaniPage({ onBack }: TambahPetaniPageProps) {
               <Select value={formData.bentukPenyimpanan} onValueChange={(value) => setFormData({ ...formData, bentukPenyimpanan: value })}>
                 <SelectTrigger className="border-gray-300 dark:border-white/10"><SelectValue placeholder="Pilih bentuk" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Sesek">Sesek</SelectItem>
-                  <SelectItem value="Green Bean">Green Bean</SelectItem>
-                  <SelectItem value="Gelondong">Gelondong</SelectItem>
-                  <SelectItem value="Tidak Tahu">Tidak Tahu</SelectItem>
+                  <SelectItem value="Sesek">sesek</SelectItem>
+                  <SelectItem value="Green Bean">green bean</SelectItem>
+                  <SelectItem value="Gelondong">gelondong</SelectItem>
+                  <SelectItem value="Tidak Tahu">tidak tahu</SelectItem>
                   <SelectItem value="Lainnya">Lainnya</SelectItem>
                 </SelectContent>
               </Select>
@@ -555,10 +555,10 @@ export function TambahPetaniPage({ onBack }: TambahPetaniPageProps) {
               <Select value={formData.kemitraan} onValueChange={(value) => setFormData({ ...formData, kemitraan: value })}>
                 <SelectTrigger className="border-gray-300 dark:border-white/10"><SelectValue placeholder="Pilih kemitraan" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Tengkulak">Tengkulak</SelectItem>
-                  <SelectItem value="User">User</SelectItem>
-                  <SelectItem value="Koperasi">Koperasi</SelectItem>
-                  <SelectItem value="Tidak Tahu">Tidak Tahu</SelectItem>
+                  <SelectItem value="Tengkulak">tengkulak</SelectItem>
+                  <SelectItem value="User">user</SelectItem>
+                  <SelectItem value="Koperasi">koperasi</SelectItem>
+                  <SelectItem value="Tidak Tahu">tidak tahu</SelectItem>
                   <SelectItem value="Lainnya">Lainnya</SelectItem>
                 </SelectContent>
               </Select>
