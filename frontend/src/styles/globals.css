@@ -194,6 +194,30 @@ html {
   font-size: var(--font-size);
 }
 
-html, body {
-  overflow-x: hidden;
+/* FORCE DARK MODE BACKGROUND - Tambahkan di paling bawah setelah semua CSS */
+html {
+  background-color: var(--background);
+}
+
+body {
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+/* Force untuk Recharts SVG background */
+.recharts-wrapper svg,
+.recharts-surface {
+  background-color: transparent !important;
+}
+
+.dark .recharts-wrapper,
+.dark .recharts-surface {
+  background-color: transparent !important;
+}
+
+/* Override background di dark mode untuk semua container */
+.dark #root,
+.dark main,
+.dark [role="main"] {
+  background-color: var(--background) !important;
 }

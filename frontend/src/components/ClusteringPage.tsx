@@ -9,12 +9,9 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
+  Label
 } from 'recharts';
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -102,6 +99,7 @@ export function ClusteringPage() {
     if (!clusters) return [];
     return clusters.map((c, idx) => ({
       name: `C${c.cluster_id}`,
+      clusterId: c.cluster_id,
       value: c.petani_count,
       fill: COLORS[idx % COLORS.length]
     }));
@@ -111,9 +109,25 @@ export function ClusteringPage() {
     if (!clusters) return [];
     return clusters.map((c, idx) => ({
       name: `C${c.cluster_id}`,
+      clusterId: c.cluster_id,
       value: c.petani_count,
       fill: COLORS_BROWN[idx % COLORS_BROWN.length]
     }));
+  };
+
+  // Custom tooltip untuk bar chart
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white dark:bg-[#242424] border border-gray-300 dark:border-white/20 rounded-lg p-3 shadow-lg">
+          <p className="text-gray-900 dark:text-[#e5e5e5] font-medium">
+            Cluster {data.clusterId}: {data.value} Petani
+          </p>
+        </div>
+      );
+    }
+    return null;
   };
 
   const formatNumber = (num: number | undefined): string => {
@@ -153,253 +167,237 @@ export function ClusteringPage() {
   const distribusiPasar = getDistribusiDataPasar(profilPasar?.clusters);
 
   return (
-    <div className="w-full max-w-full dark:text-gray-100 space-y-6 md:space-y-8">
+    <div className="w-full max-w-full overflow-x-hidden dark:text-gray-100 space-y-4 sm:space-y-6 px-2 sm:px-4 lg:px-6">
       {/* Header - Responsive */}
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-[#2d5f3f] dark:text-[#b88746] mb-2">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#2d5f3f] dark:text-[#b88746] mb-2">
           Analisis Clustering Petani Kopi
         </h1>
-        <p className="text-sm md:text-base text-gray-600 dark:text-[#a3a3a3]">
+        <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-[#a3a3a3]">
           Hasil clustering menggunakan Machine Learning untuk segmentasi petani
         </p>
       </div>
 
-      {/* Summary Cards - Responsive Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <Card className="p-4 md:p-5 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] text-white border-0 shadow-lg">
+      {/* Summary Cards - Full Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="p-4 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] text-white border-0 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 md:p-3 bg-white/20 rounded-lg">
-              <BarChart3 className="w-5 h-5 md:w-6 md:h-6" />
+            <div className="p-2 sm:p-3 bg-white/20 rounded-lg shrink-0">
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <p className="text-white/80 text-xs md:text-sm">Total Clusters</p>
-              <p className="text-xl md:text-2xl font-bold">{totalClustersProduk + totalClustersPasar}</p>
+            <div className="min-w-0">
+              <p className="text-white/80 text-xs sm:text-sm">Total Clusters</p>
+              <p className="text-xl sm:text-2xl font-bold truncate">{totalClustersProduk + totalClustersPasar}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 md:p-5 bg-gradient-to-br from-[#8b6f47] to-[#a78a5e] text-white border-0 shadow-lg">
+        <Card className="p-4 bg-gradient-to-br from-[#8b6f47] to-[#a78a5e] text-white border-0 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 md:p-3 bg-white/20 rounded-lg">
-              <Users className="w-5 h-5 md:w-6 md:h-6" />
+            <div className="p-2 sm:p-3 bg-white/20 rounded-lg shrink-0">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <p className="text-white/80 text-xs md:text-sm">Total Petani</p>
-              <p className="text-xl md:text-2xl font-bold">{totalPetani}</p>
+            <div className="min-w-0">
+              <p className="text-white/80 text-xs sm:text-sm">Total Petani</p>
+              <p className="text-xl sm:text-2xl font-bold truncate">{totalPetani}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 md:p-5 bg-white dark:bg-[#242424] border-0 shadow-lg">
+        <Card className="p-4 bg-white dark:bg-[#242424] border-0 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 md:p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
-              <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" />
+            <div className="p-2 sm:p-3 bg-green-100 dark:bg-green-900/20 rounded-lg shrink-0">
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
             </div>
-            <div>
-              <p className="text-gray-600 dark:text-[#a3a3a3] text-xs md:text-sm">Model Produk</p>
-              <p className="text-base md:text-lg text-gray-900 dark:text-[#e5e5e5] font-medium">{produkBudidaya?.model || 'N/A'}</p>
+            <div className="min-w-0">
+              <p className="text-gray-600 dark:text-[#a3a3a3] text-xs sm:text-sm">Model Produk</p>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-900 dark:text-[#e5e5e5] font-medium truncate">{produkBudidaya?.model || 'N/A'}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 md:p-5 bg-white dark:bg-[#242424] border-0 shadow-lg">
+        <Card className="p-4 bg-white dark:bg-[#242424] border-0 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="p-2 md:p-3 bg-amber-100 dark:bg-amber-900/20 rounded-lg">
-              <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-amber-600 dark:text-amber-400" />
+            <div className="p-2 sm:p-3 bg-amber-100 dark:bg-amber-900/20 rounded-lg shrink-0">
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 dark:text-amber-400" />
             </div>
-            <div>
-              <p className="text-gray-600 dark:text-[#a3a3a3] text-xs md:text-sm">Model Pasar</p>
-              <p className="text-base md:text-lg text-gray-900 dark:text-[#e5e5e5] font-medium">{profilPasar?.model || 'N/A'}</p>
+            <div className="min-w-0">
+              <p className="text-gray-600 dark:text-[#a3a3a3] text-xs sm:text-sm">Model Pasar</p>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-900 dark:text-[#e5e5e5] font-medium truncate">{profilPasar?.model || 'N/A'}</p>
             </div>
           </div>
         </Card>
       </div>
 
       {/* CLUSTERING 1: PRODUKTIVITAS DAN PRAKTIK BUDAYA */}
-      <Card className="p-4 md:p-6 lg:p-8 bg-white dark:bg-[#242424] shadow-xl border-0">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] rounded-xl flex items-center justify-center shrink-0">
-              <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white" />
+      <Card className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-[#242424] shadow-xl border-0 overflow-hidden">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] rounded-xl flex items-center justify-center shrink-0">
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-[#e5e5e5]">
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-[#e5e5e5]">
                 {produkBudidaya?.clustering_type || 'Clustering Produktivitas dan Praktik Budaya'}
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a3a3a3]">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-[#a3a3a3]">
                 Analisis berdasarkan hasil panen, lahan, dan metode budidaya
               </p>
             </div>
           </div>
         </div>
 
-        {/* Distribusi Cluster - Responsive */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-          <div>
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3 md:mb-4">Distribusi Cluster</h3>
-            <Card className="p-3 md:p-4 bg-gradient-to-br from-green-50 to-amber-50 dark:from-[#1a2e23] dark:to-[#2d4a3a] border border-[#2d5f3f]/20 dark:border-white/10">
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={distribusiProduk}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#666" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="#666" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: '1px solid #ddd',
-                      borderRadius: '8px',
-                      fontSize: '12px'
-                    }}
+        {/* Distribusi Cluster - Bar Chart Only */}
+        <div className="mb-6">
+          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3">Distribusi Cluster</h3>
+          <Card className="p-3 sm:p-4 bg-gradient-to-br from-green-50 to-amber-50 dark:from-[#1a2e23] dark:to-[#2d4a3a] border border-[#2d5f3f]/20 dark:border-white/10">
+            <ResponsiveContainer width="100%" height={300} className="sm:h-[350px]">
+              <BarChart data={distribusiProduk} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 11, fill: '#666' }} 
+                  stroke="#666"
+                >
+                  <Label 
+                    value="Cluster" 
+                    offset={-10} 
+                    position="insideBottom" 
+                    style={{ fontSize: '13px', fill: '#2d5f3f', fontWeight: '600' }}
+                    className="dark:fill-[#b88746]"
                   />
-                  <Bar dataKey="value" fill="#2d5f3f" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </div>
-
-          <div>
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3 md:mb-4">Proporsi Cluster</h3>
-            <Card className="p-3 md:p-4 bg-gradient-to-br from-green-50 to-amber-50 dark:from-[#1a2e23] dark:to-[#2d4a3a] border border-[#2d5f3f]/20 dark:border-white/10">
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={distribusiProduk}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {distribusiProduk.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </Card>
-          </div>
+                </XAxis>
+                <YAxis 
+                  tick={{ fontSize: 11, fill: '#666' }} 
+                  stroke="#666"
+                >
+                  <Label 
+                    value="Jumlah Petani" 
+                    angle={-90} 
+                    position="insideLeft" 
+                    style={{ fontSize: '13px', fill: '#2d5f3f', fontWeight: '600', textAnchor: 'middle' }}
+                    className="dark:fill-[#b88746]"
+                  />
+                </YAxis>
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" fill="#2d5f3f" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
         </div>
 
-        {/* Tabel Karakteristik - Scroll Horizontal */}
-        <div className="mb-6 md:mb-8">
-          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3 md:mb-4">Karakteristik Cluster</h3>
-          <div className="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10">
-            <Table className="min-w-full">
+        {/* Tabel Karakteristik - ALWAYS VISIBLE with Horizontal Scroll & Sticky Columns */}
+        <div className="mb-6">
+          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3">Karakteristik Cluster</h3>
+          
+          {/* Table wrapper - ALWAYS shows, no conditional rendering */}
+          <div className="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10 shadow-md">
+            <table className="w-full caption-bottom text-xs border-collapse relative">
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59] hover:from-[#2d5f3f] hover:to-[#4a7c59]">
-                  <TableHead className="text-white text-xs md:text-sm whitespace-nowrap sticky left-0 z-10 bg-[#2d5f3f]">Cluster</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm whitespace-nowrap">Label</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Petani</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center bg-green-700 whitespace-nowrap">Hasil/Tahun</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Luas Lahan</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Budidaya</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Pupuk</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Panen</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Lama Bertani</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Populasi</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Irigasi</TableHead>
+                  <TableHead className="text-white whitespace-nowrap sticky left-0 z-20 bg-[#2d5f3f] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">Cluster</TableHead>
+                  <TableHead className="text-white whitespace-nowrap sticky left-[70px] z-20 bg-[#2d5f3f] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] min-w-[180px]">Label</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap">Petani</TableHead>
+                  <TableHead className="text-white text-center bg-green-700 whitespace-nowrap min-w-[100px]">Hasil/Tahun</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[100px]">Luas Lahan</TableHead>
+                  <TableHead className="text-white text-center bg-green-700 whitespace-nowrap min-w-[130px]">Budidaya</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[100px]">Pupuk</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[120px]">Panen</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[100px]">Bertani</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[110px]">Populasi</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[120px]">Irigasi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {produkBudidaya?.clusters.map((cluster, index) => (
-                  <TableRow key={cluster.cluster_id} className={index % 2 === 0 ? 'bg-white dark:bg-[#242424]' : 'bg-gray-50 dark:bg-[#1a2e23]'}>
-                    <TableCell className="whitespace-nowrap sticky left-0 z-10 bg-inherit">
+                  <TableRow
+                    key={cluster.cluster_id}
+                    className="bg-transparent dark:bg-transparent hover:bg-[#2d5f3f]/10 transition-colors"
+                    >
+                    <TableCell className="whitespace-nowrap sticky left-0 z-10 bg-inherit shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       <Badge className="bg-[#2d5f3f] dark:bg-[#4a7c59] hover:bg-[#2d5f3f] dark:hover:bg-[#4a7c59] text-white text-xs">
                         {cluster.cluster_id}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-gray-900 dark:text-[#e5e5e5] font-medium text-xs md:text-sm max-w-[200px] truncate">
-                      {cluster.label}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm whitespace-nowrap">
-                      {cluster.petani_count}
-                    </TableCell>
-                    <TableCell className="text-center bg-green-50 dark:bg-green-900/20 font-bold text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm whitespace-nowrap">
+                    <TableCell className="text-gray-900 dark:text-[#e5e5e5] font-medium whitespace-nowrap sticky left-[70px] z-10 bg-inherit shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">{cluster.label}</TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.petani_count}</TableCell>
+                    <TableCell className="text-center bg-green-50 dark:bg-green-900/20 font-bold text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">
                       {formatNumber(cluster.karakteristik.avg_produktivitas_kg || 0)} kg
                     </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm whitespace-nowrap">
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">
                       {formatNumber(cluster.karakteristik.avg_luas_lahan_m2 || 0)} m²
                     </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[150px] truncate">
+                    <TableCell className="text-center bg-green-50 dark:bg-green-900/20 font-bold text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">
                       {cluster.karakteristik.metode_budidaya || 'N/A'}
                     </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
-                      {cluster.karakteristik.pupuk || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
-                      {cluster.karakteristik.metode_panen || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm whitespace-nowrap">
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.karakteristik.pupuk || 'N/A'}</TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.karakteristik.metode_panen || 'N/A'}</TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">
                       {formatNumber(cluster.karakteristik.avg_lama_bertani_tahun || 0)} th
                     </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm whitespace-nowrap">
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">
                       {formatNumber(cluster.karakteristik.avg_populasi_kopi || 0)}
                     </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
-                      {cluster.karakteristik.sistem_irigasi || 'N/A'}
-                    </TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.karakteristik.sistem_irigasi || 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </table>
           </div>
         </div>
 
         {/* Insight Cards - Responsive */}
-        <div className="mb-6 md:mb-8">
-          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-4 md:mb-6 flex items-center gap-2">
-            <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+        <div className="mb-6">
+          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-4 flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
             Daftar Petani dan Insight per Cluster
           </h3>
-          <div className="grid grid-cols-1 gap-4 md:gap-6">
+          <div className="space-y-4">
             {produkBudidaya?.clusters.map((cluster) => (
               <Card key={cluster.cluster_id} className="overflow-hidden border-2 border-gray-200 dark:border-white/10 hover:border-[#2d5f3f] dark:hover:border-[#4a7c59] transition-all">
-                <div className="bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59] p-4 md:p-6">
+                <div className="bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59] p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                      <Badge className="bg-white text-[#2d5f3f] hover:bg-white text-sm md:text-lg px-3 md:px-4 py-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className="bg-white text-[#2d5f3f] hover:bg-white text-sm sm:text-base px-3 py-1">
                         Cluster {cluster.cluster_id}
                       </Badge>
-                      <h4 className="text-white font-semibold text-base md:text-xl">{cluster.label}</h4>
+                      <h4 className="text-white font-semibold text-sm sm:text-lg">{cluster.label}</h4>
                     </div>
-                    <Badge className="bg-white/20 text-white hover:bg-white/20 border-white/40 text-sm md:text-base px-3 py-1 w-fit">
+                    <Badge className="bg-white/20 text-white hover:bg-white/20 border-white/40 text-xs sm:text-sm px-3 py-1 w-fit">
                       {cluster.petani_count} Petani
                     </Badge>
                   </div>
                 </div>
                 
-                <div className="p-4 md:p-6 bg-white dark:bg-[#242424]">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <div className="p-4 sm:p-6 bg-white dark:bg-[#242424]">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Daftar Petani */}
                     <div>
-                      <h5 className="font-bold text-gray-800 dark:text-[#e5e5e5] mb-3 flex items-center gap-2 text-sm md:text-base">
-                        <Users className="w-4 h-4 md:w-5 md:h-5 text-[#2d5f3f]" />
+                      <h5 className="font-bold text-gray-800 dark:text-[#e5e5e5] mb-3 flex items-center gap-2 text-xs sm:text-sm">
+                        <Users className="w-4 h-4 text-[#2d5f3f] shrink-0" />
                         Daftar Petani:
                       </h5>
                       <div className="flex flex-wrap gap-2">
                         {cluster.petani_names && cluster.petani_names.length > 0 ? (
                           cluster.petani_names.map((name, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs md:text-sm px-2 md:px-3 py-1">
+                            <Badge key={idx} variant="outline" className="text-xs px-2 py-1">
                               {name}
                             </Badge>
                           ))
                         ) : (
-                          <p className="text-xs md:text-sm text-gray-500 dark:text-[#a3a3a3]">Data tidak tersedia</p>
+                          <p className="text-xs text-gray-500 dark:text-[#a3a3a3]">Data tidak tersedia</p>
                         )}
                       </div>
                     </div>
 
                     {/* Interpretasi & Insight */}
                     <div>
-                      <h5 className="font-bold text-gray-800 dark:text-[#e5e5e5] mb-3 flex items-center gap-2 text-sm md:text-base">
-                        <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+                      <h5 className="font-bold text-gray-800 dark:text-[#e5e5e5] mb-3 flex items-center gap-2 text-xs sm:text-sm">
+                        <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
                         Interpretasi & Insight:
                       </h5>
-                      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-l-4 border-blue-500 dark:border-blue-400 rounded-r-lg p-3 md:p-4">
-                        <p className="text-xs md:text-sm text-gray-800 dark:text-[#d4d4d4] leading-relaxed">
+                      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-l-4 border-blue-500 dark:border-blue-400 rounded-r-lg p-3">
+                        <p className="text-xs sm:text-sm text-gray-800 dark:text-[#d4d4d4] leading-relaxed">
                           {getInsightProduk(cluster.label, cluster.karakteristik.avg_produktivitas_kg || 0, cluster.karakteristik.metode_budidaya || 'N/A')}
                         </p>
                       </div>
@@ -413,186 +411,166 @@ export function ClusteringPage() {
       </Card>
 
       {/* CLUSTERING 2: PROFIL PETANI DAN PEMASARAN */}
-      <Card className="p-4 md:p-6 lg:p-8 bg-white dark:bg-[#242424] shadow-xl border-0">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#8b6f47] to-[#a78a5e] rounded-xl flex items-center justify-center shrink-0">
-              <Users className="w-5 h-5 md:w-6 md:h-6 text-white" />
+      <Card className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-[#242424] shadow-xl border-0 overflow-hidden">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#8b6f47] to-[#a78a5e] rounded-xl flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-[#e5e5e5]">
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-[#e5e5e5]">
                 {profilPasar?.clustering_type || 'Clustering Profil Petani dan Pemasaran'}
               </h2>
-              <p className="text-xs md:text-sm text-gray-600 dark:text-[#a3a3a3]">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-[#a3a3a3]">
                 Analisis berdasarkan profil petani dan strategi pemasaran
               </p>
             </div>
           </div>
         </div>
 
-        {/* Distribusi Cluster - Responsive */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-          <div>
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3 md:mb-4">Distribusi Cluster</h3>
-            <Card className="p-3 md:p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-[#2d2416] dark:to-[#3d3426] border border-[#8b6f47]/20 dark:border-white/10">
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={distribusiPasar}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#666" />
-                  <YAxis tick={{ fontSize: 11 }} stroke="#666" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: '1px solid #ddd',
-                      borderRadius: '8px',
-                      fontSize: '12px'
-                    }}
+        {/* Distribusi Cluster - Bar Chart Only */}
+        <div className="mb-6">
+          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3">Distribusi Cluster</h3>
+          <Card className="p-3 sm:p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-[#2d2416] dark:to-[#3d3426] border border-[#8b6f47]/20 dark:border-white/10">
+            <ResponsiveContainer width="100%" height={300} className="sm:h-[350px]">
+              <BarChart data={distribusiPasar} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 11, fill: '#666' }} 
+                  stroke="#666"
+                >
+                  <Label 
+                    value="Cluster" 
+                    offset={-10} 
+                    position="insideBottom" 
+                    style={{ fontSize: '13px', fill: '#8b6f47', fontWeight: '600' }}
+                    className="dark:fill-[#b88746]"
                   />
-                  <Bar dataKey="value" fill="#8b6f47" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </div>
-
-          <div>
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3 md:mb-4">Proporsi Cluster</h3>
-            <Card className="p-3 md:p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-[#2d2416] dark:to-[#3d3426] border border-[#8b6f47]/20 dark:border-white/10">
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={distribusiPasar}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {distribusiPasar.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS_BROWN[index % COLORS_BROWN.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </Card>
-          </div>
+                </XAxis>
+                <YAxis 
+                  tick={{ fontSize: 11, fill: '#666' }} 
+                  stroke="#666"
+                >
+                  <Label 
+                    value="Jumlah Petani" 
+                    angle={-90} 
+                    position="insideLeft" 
+                    style={{ fontSize: '13px', fill: '#8b6f47', fontWeight: '600', textAnchor: 'middle' }}
+                    className="dark:fill-[#b88746]"
+                  />
+                </YAxis>
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" fill="#8b6f47" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
         </div>
 
-        {/* Tabel Karakteristik - Scroll Horizontal */}
-        <div className="mb-6 md:mb-8">
-          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3 md:mb-4">Karakteristik Cluster</h3>
-          <div className="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10">
-            <Table className="min-w-full">
+        {/* Tabel Karakteristik - ALWAYS VISIBLE with Horizontal Scroll & Sticky Columns */}
+        <div className="mb-6">
+          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-3">Karakteristik Cluster</h3>
+          
+          {/* Table wrapper - ALWAYS shows, no conditional rendering */}
+          <div className="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10 shadow-md">
+            <table className="w-full caption-bottom text-xs border-collapse relative">
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-[#8b6f47] to-[#a78a5e] hover:from-[#8b6f47] hover:to-[#a78a5e]">
-                  <TableHead className="text-white text-xs md:text-sm whitespace-nowrap sticky left-0 z-10 bg-[#8b6f47]">Cluster</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm whitespace-nowrap">Label</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Petani</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center bg-amber-700 whitespace-nowrap">Harga Jual</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Fermentasi</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Pengeringan</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Penjualan</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Penyimpanan</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Sistem</TableHead>
-                  <TableHead className="text-white text-xs md:text-sm text-center whitespace-nowrap">Pengolahan</TableHead>
+                  <TableHead className="text-white whitespace-nowrap sticky left-0 z-20 bg-[#8b6f47] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]">Cluster</TableHead>
+                  <TableHead className="text-white whitespace-nowrap sticky left-[70px] z-20 bg-[#8b6f47] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] min-w-[180px]">Label</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap">Petani</TableHead>
+                  <TableHead className="text-white text-center bg-amber-700 whitespace-nowrap min-w-[100px]">Harga Jual</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[130px]">Penjualan</TableHead>
+                  <TableHead className="text-white text-center bg-amber-700 whitespace-nowrap min-w-[130px]">Pengolahan</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[120px]">Fermentasi</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[130px]">Pengeringan</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[130px]">Penyimpanan</TableHead>
+                  <TableHead className="text-white text-center whitespace-nowrap min-w-[130px]">Sistem</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {profilPasar?.clusters.map((cluster, index) => (
-                  <TableRow key={cluster.cluster_id} className={index % 2 === 0 ? 'bg-white dark:bg-[#242424]' : 'bg-gray-50 dark:bg-[#1a2e23]'}>
-                    <TableCell className="whitespace-nowrap sticky left-0 z-10 bg-inherit">
-                      <Badge className="bg-[#8b6f47] dark:bg-[#a78a5e] hover:bg-[#8b6f47] dark:hover:bg-[#a78a5e] text-white text-xs">
+                  <TableRow
+                    key={cluster.cluster_id}
+                    className="bg-transparent dark:bg-transparent hover:bg-[#8b6f47]/10 transition-colors"
+                  >
+                    <TableCell className="whitespace-nowrap sticky left-0 z-10 bg-inherit shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                      <Badge className="bg-[#8b6f47] dark:bg-[#a78a5e] hover:bg-[#8b6f47] text-white text-xs">
                         {cluster.cluster_id}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-gray-900 dark:text-[#e5e5e5] font-medium text-xs md:text-sm max-w-[200px] truncate">
-                      {cluster.label}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm whitespace-nowrap">
-                      {cluster.petani_count}
-                    </TableCell>
-                    <TableCell className="text-center bg-amber-50 dark:bg-amber-900/20 font-bold text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm whitespace-nowrap">
+                    <TableCell className="text-gray-900 dark:text-[#e5e5e5] font-medium whitespace-nowrap sticky left-[70px] z-10 bg-inherit shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">{cluster.label}</TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.petani_count}</TableCell>
+                    <TableCell className="text-center bg-amber-50 dark:bg-amber-900/20 font-bold text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">
                       Rp {formatNumber(cluster.karakteristik.avg_harga_jual || 0)}
                     </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
-                      {cluster.karakteristik.lama_fermentasi || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
-                      {cluster.karakteristik.proses_pengeringan || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
-                      {cluster.karakteristik.metode_penjualan || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
-                      {cluster.karakteristik.bentuk_penyimpanan || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
-                      {cluster.karakteristik.sistem_penyimpanan || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] text-xs md:text-sm max-w-[120px] truncate">
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.karakteristik.metode_penjualan || 'N/A'}</TableCell>
+                    <TableCell className="text-center bg-amber-50 dark:bg-amber-900/20 font-bold text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">
                       {cluster.karakteristik.metode_pengolahan || 'N/A'}
                     </TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.karakteristik.lama_fermentasi || 'N/A'}</TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.karakteristik.proses_pengeringan || 'N/A'}</TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.karakteristik.bentuk_penyimpanan || 'N/A'}</TableCell>
+                    <TableCell className="text-center text-gray-900 dark:text-[#e5e5e5] whitespace-nowrap">{cluster.karakteristik.sistem_penyimpanan || 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+            </table>
           </div>
         </div>
 
         {/* Insight Cards - Responsive */}
-        <div className="mb-6 md:mb-8">
-          <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-4 md:mb-6 flex items-center gap-2">
-            <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+        <div className="mb-6">
+          <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 dark:text-[#e5e5e5] mb-4 flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
             Daftar Petani dan Insight per Cluster
           </h3>
-          <div className="grid grid-cols-1 gap-4 md:gap-6">
+          <div className="space-y-4">
             {profilPasar?.clusters.map((cluster) => (
               <Card key={cluster.cluster_id} className="overflow-hidden border-2 border-gray-200 dark:border-white/10 hover:border-[#8b6f47] dark:hover:border-[#a78a5e] transition-all">
-                <div className="bg-gradient-to-r from-[#8b6f47] to-[#a78a5e] p-4 md:p-6">
+                <div className="bg-gradient-to-r from-[#8b6f47] to-[#a78a5e] p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                      <Badge className="bg-white text-[#8b6f47] hover:bg-white text-sm md:text-lg px-3 md:px-4 py-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className="bg-white text-[#8b6f47] hover:bg-white text-sm sm:text-base px-3 py-1">
                         Cluster {cluster.cluster_id}
                       </Badge>
-                      <h4 className="text-white font-semibold text-base md:text-xl">{cluster.label}</h4>
+                      <h4 className="text-white font-semibold text-sm sm:text-lg">{cluster.label}</h4>
                     </div>
-                    <Badge className="bg-white/20 text-white hover:bg-white/20 border-white/40 text-sm md:text-base px-3 py-1 w-fit">
+                    <Badge className="bg-white/20 text-white hover:bg-white/20 border-white/40 text-xs sm:text-sm px-3 py-1 w-fit">
                       {cluster.petani_count} Petani
                     </Badge>
                   </div>
                 </div>
                 
-                <div className="p-4 md:p-6 bg-white dark:bg-[#242424]">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <div className="p-4 sm:p-6 bg-white dark:bg-[#242424]">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Daftar Petani */}
                     <div>
-                      <h5 className="font-bold text-gray-800 dark:text-[#e5e5e5] mb-3 flex items-center gap-2 text-sm md:text-base">
-                        <Users className="w-4 h-4 md:w-5 md:h-5 text-[#8b6f47]" />
+                      <h5 className="font-bold text-gray-800 dark:text-[#e5e5e5] mb-3 flex items-center gap-2 text-xs sm:text-sm">
+                        <Users className="w-4 h-4 text-[#8b6f47] shrink-0" />
                         Daftar Petani:
                       </h5>
                       <div className="flex flex-wrap gap-2">
                         {cluster.petani_names && cluster.petani_names.length > 0 ? (
                           cluster.petani_names.map((name, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs md:text-sm px-2 md:px-3 py-1 border-amber-300">
+                            <Badge key={idx} variant="outline" className="text-xs px-2 py-1 border-amber-300">
                               {name}
                             </Badge>
                           ))
                         ) : (
-                          <p className="text-xs md:text-sm text-gray-500 dark:text-[#a3a3a3]">Data tidak tersedia</p>
+                          <p className="text-xs text-gray-500 dark:text-[#a3a3a3]">Data tidak tersedia</p>
                         )}
                       </div>
                     </div>
 
                     {/* Interpretasi & Insight */}
                     <div>
-                      <h5 className="font-bold text-gray-800 dark:text-[#e5e5e5] mb-3 flex items-center gap-2 text-sm md:text-base">
-                        <Lightbulb className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+                      <h5 className="font-bold text-gray-800 dark:text-[#e5e5e5] mb-3 flex items-center gap-2 text-xs sm:text-sm">
+                        <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
                         Interpretasi & Insight:
                       </h5>
-                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-l-4 border-amber-500 dark:border-amber-400 rounded-r-lg p-3 md:p-4">
-                        <p className="text-xs md:text-sm text-gray-800 dark:text-[#d4d4d4] leading-relaxed">
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-l-4 border-amber-500 dark:border-amber-400 rounded-r-lg p-3">
+                        <p className="text-xs sm:text-sm text-gray-800 dark:text-[#d4d4d4] leading-relaxed">
                           {getInsightPasar(cluster.label, cluster.karakteristik.avg_harga_jual || 0, cluster.karakteristik.metode_penjualan || 'N/A', cluster.karakteristik.metode_pengolahan || 'N/A')}
                         </p>
                       </div>
@@ -610,38 +588,31 @@ export function ClusteringPage() {
 
 // Helper functions untuk generate insight
 function getInsightProduk(label: string, avgProduksi: number, metodeBudidaya: string): string {
-  if (label.includes('Sangat Tinggi')) {
-    return `Kelompok petani dengan pengalaman tinggi dan hasil panen sangat produktif (${avgProduksi.toFixed(0)} kg/tahun). Mayoritas menggunakan metode budidaya ${metodeBudidaya}. Cluster ini dapat menjadi role model untuk penerapan praktik pertanian berkelanjutan dan pelatihan bagi kelompok lain dalam hal teknik budidaya modern, manajemen lahan yang efisien, dan optimalisasi penggunaan pupuk.`;
-  } else if (label.includes('Tinggi')) {
-    return `Petani dengan produktivitas tinggi (${avgProduksi.toFixed(0)} kg/tahun) dan efisiensi yang baik dengan metode ${metodeBudidaya}. Potensi untuk meningkat lebih tinggi jika akses pasar dan harga jual diperbaiki melalui inovasi pupuk organik, teknik panen yang lebih modern, dan diversifikasi varietas kopi yang ditanam.`;
-  } else if (label.includes('Sedang')) {
-    return `Kelompok petani dengan produktivitas sedang (${avgProduksi.toFixed(0)} kg/tahun) menggunakan metode ${metodeBudidaya} yang cenderung semi-tradisional. Cocok untuk intervensi pelatihan teknologi pertanian modern, manajemen lahan yang lebih baik, serta akses terhadap pupuk berkualitas dan sistem irigasi yang memadai untuk meningkatkan hasil panen.`;
-  } else {
-    return `Petani dengan produktivitas terbatas (${avgProduksi.toFixed(0)} kg/tahun), menggunakan metode ${metodeBudidaya}. Memerlukan dukungan intensif baik dari segi pelatihan teknis, pembiayaan mikro, akses ke input pertanian berkualitas, maupun pembentukan koperasi untuk meningkatkan hasil panen dan kesejahteraan ekonomi.`;
+  if (label.includes('Expert')) {
+    return `Kelompok petani yang sudah expert dan produktivitas sangat tinggi menunjukkan kinerja luar biasa dengan hasil rata-rata sekitar ${avgProduksi.toFixed(0)} kg per tahun. Mayoritas menggunakan metode budidaya ${metodeBudidaya}, dengan pengalaman bertani puluhan tahun dan manajemen lahan yang efisien. Kelompok ini berpotensi menjadi mentor bagi petani lain, terutama dalam penerapan teknik pemetikan selektif dan penggunaan pupuk kimia secara tepat untuk menjaga konsistensi kualitas kopi.`;
+  } 
+  else if (label.includes('Efisien')) {
+    return `Kelompok petani efisien memiliki produktivitas yang solid (${avgProduksi.toFixed(0)} kg/tahun) meskipun dengan luas lahan relatif kecil. Penggunaan metode budidaya ${metodeBudidaya} menunjukkan orientasi pada efisiensi dan keberlanjutan. Kelompok ini dapat ditingkatkan melalui akses terhadap pasar premium, pelatihan diversifikasi produk olahan kopi, dan peningkatan sistem irigasi agar hasil tetap stabil sepanjang tahun.`;
+  } 
+  else if (label.includes('Berkembang')) {
+    return `Kelompok petani sudah berkembang dan produktivitas stabil mencerminkan petani yang sudah mulai adaptif terhadap praktik modern dengan hasil sekitar ${avgProduksi.toFixed(0)} kg/tahun. Metode budidaya ${metodeBudidaya} masih umum digunakan, tetapi konsistensi hasil menunjukkan potensi besar. Intervensi berupa pelatihan teknik budidaya organik, manajemen pupuk berimbang, serta dukungan peralatan panen dapat meningkatkan efisiensi dan pendapatan mereka.`;
+  } 
+  else if (label.includes('Pemula')) {
+    return `Kelompok petani yang masih pemula dan produktivitas rendah masih menghadapi tantangan dalam peningkatan hasil panen (rata-rata ${avgProduksi.toFixed(0)} kg/tahun). Umumnya menggunakan metode budidaya ${metodeBudidaya} dan bergantung pada kondisi alam seperti tadah hujan. Mereka membutuhkan pendampingan intensif dalam pengelolaan lahan, penggunaan pupuk yang tepat, serta pelatihan dasar teknik panen agar produktivitas dan kualitas kopi dapat meningkat.`;
+  } 
+  else {
+    return `Kelompok petani ini memiliki karakteristik unik dengan hasil rata-rata ${avgProduksi.toFixed(0)} kg per tahun menggunakan metode ${metodeBudidaya}. Perlu analisis lanjutan untuk menentukan strategi peningkatan hasil yang sesuai dengan kondisi lahan dan sumber daya yang tersedia.`;
   }
 }
 
 function getInsightPasar(label: string, avgHarga: number, metodePenjualan: string, metodePengolahan: string): string {
   if (label.includes('Petani Berpengalaman')) {
-    return `Kelompok petani berpengalaman yang sudah mampu menjangkau pasar premium dengan rata-rata harga jual Rp ${avgHarga.toFixed(0)}/kg. 
-    Umumnya menggunakan metode penjualan ${metodePenjualan} dengan pengolahan ${metodePengolahan} yang terstandarisasi dan berfokus pada kualitas tinggi. 
-    Cluster ini menunjukkan kemandirian dan profesionalisme tinggi dalam pengelolaan hasil panen. 
-    Rekomendasi: pertahankan konsistensi mutu, perluas sertifikasi (organik/fair trade), dan tingkatkan branding untuk memperluas akses ke pasar ekspor.`;
-
+    return `Kelompok petani berpengalaman yang sudah mampu menjangkau pasar premium dengan rata-rata harga jual Rp ${avgHarga.toFixed(0)}/kg. Umumnya menggunakan metode penjualan ${metodePenjualan} dengan pengolahan ${metodePengolahan} yang terstandarisasi dan berfokus pada kualitas tinggi. Cluster ini menunjukkan kemandirian dan profesionalisme tinggi dalam pengelolaan hasil panen. Rekomendasi: pertahankan konsistensi mutu, perluas sertifikasi (organik/fair trade), dan tingkatkan branding untuk memperluas akses ke pasar ekspor.`;
   } else if (label.includes('Petani Modern')) {
-    return `Kelompok petani modern dengan harga jual semi-premium sekitar Rp ${avgHarga.toFixed(0)}/kg. 
-    Mereka menerapkan metode penjualan ${metodePenjualan} dan pengolahan ${metodePengolahan} yang cukup efisien. 
-    Cluster ini memiliki potensi besar untuk naik ke pasar premium jika kualitas pasca-panen dan pengemasan terus ditingkatkan. 
-    Rekomendasi: lakukan pelatihan pengolahan modern, gunakan teknologi tepat guna, dan bangun kemitraan dengan pembeli premium.`;
-
-  } else if (label.includes('Petani Konvensional')) {
-    return `Kelompok petani konvensional yang masih berfokus pada pasar lokal dengan rata-rata harga jual Rp ${avgHarga.toFixed(0)}/kg. 
-    Umumnya menggunakan metode penjualan ${metodePenjualan} dan pengolahan ${metodePengolahan} yang sederhana dan tradisional. 
-    Cluster ini memiliki potensi besar untuk berkembang melalui pendampingan intensif. 
-    Rekomendasi: tingkatkan pelatihan manajemen kualitas, akses pembiayaan mikro, serta bentuk koperasi untuk memperluas jaringan pasar dan meningkatkan daya saing.`;
-
+    return `Kelompok petani modern dengan harga jual semi-premium sekitar Rp ${avgHarga.toFixed(0)}/kg. Mereka menerapkan metode penjualan ${metodePenjualan} dan pengolahan ${metodePengolahan} yang cukup efisien. Cluster ini memiliki potensi besar untuk naik ke pasar premium jika kualitas pasca-panen dan pengemasan terus ditingkatkan. Rekomendasi: lakukan pelatihan pengolahan modern, gunakan teknologi tepat guna, dan bangun kemitraan dengan pembeli premium.`;
+  } else if (label.includes('Petani Produktif')) {
+    return `Kelompok petani konvensional yang masih berfokus pada pasar lokal dengan rata-rata harga jual Rp ${avgHarga.toFixed(0)}/kg. Umumnya menggunakan metode penjualan ${metodePenjualan} dan pengolahan ${metodePengolahan} yang sederhana dan tradisional. Cluster ini memiliki potensi besar untuk berkembang melalui pendampingan intensif. Rekomendasi: tingkatkan pelatihan manajemen kualitas, akses pembiayaan mikro, serta bentuk koperasi untuk memperluas jaringan pasar dan meningkatkan daya saing.`;
   } else {
     return `Cluster ini belum terklasifikasi secara spesifik. Diperlukan analisis lebih lanjut untuk menentukan karakteristik petani dan segmentasi pasarnya.`;
   }
 }
-

@@ -291,46 +291,49 @@ export function DataPetaniPage({
   if (isLoading) return <p className="text-center py-10">Memuat data...</p>;
 
   return (
-    <div className="dark:text-gray-100">
+    <div className="w-full max-w-full overflow-x-hidden dark:text-gray-100 px-2 sm:px-4 lg:px-6">
       {/* === HEADER === */}
-      <div className="mb-8">
-        <h1 className="text-[#2d5f3f] dark:text-green-400 mb-2">Data Petani</h1>
-        <p className="text-gray-600 dark:text-gray-400">Kelola dan pantau data petani kopi</p>
+      <div className="mb-4 sm:mb-6 lg:mb-8">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#2d5f3f] dark:text-green-400 mb-2">Data Petani</h1>
+        <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400">Kelola dan pantau data petani kopi</p>
       </div>
 
       {/* === FILTER & ACTION === */}
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Search Bar - Flexible Width */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
           <Input
             placeholder="Cari Nama / Dusun"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 border-gray-300 focus:border-[#2d5f3f]"
+            className="pl-10 sm:pl-12 w-full text-xs sm:text-sm border-gray-300 dark:border-white/10 dark:bg-[#1a2e23] dark:text-[#e5e5e5] focus:border-[#2d5f3f] dark:focus:border-[#4a7c59]"
           />
         </div>
 
-        <div className="flex gap-2">
+        {/* Action Buttons - Right Side */}
+        <div className="flex gap-2 shrink-0">
           <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
-                className="gap-2 border-[#8b6f47] text-[#8b6f47] hover:bg-[#8b6f47] hover:text-white"
+                className="gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 border-[#8b6f47] text-[#8b6f47] hover:bg-[#8b6f47] hover:text-white dark:border-[#8b6f47] dark:text-[#8b6f47] dark:hover:bg-[#8b6f47] dark:hover:text-white"
               >
-                <Download className="w-4 h-4" /> Export
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> 
+                <span>Export</span>
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="w-[90vw] sm:w-full max-w-md dark:bg-[#242424] dark:border-white/10">
               <DialogHeader>
-                <DialogTitle>Export Data</DialogTitle>
-                <DialogDescription>Pilih format file export</DialogDescription>
+                <DialogTitle className="text-base sm:text-lg dark:text-[#e5e5e5]">Export Data</DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm dark:text-[#a3a3a3]">Pilih format file export</DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-3 py-4">
                 {["CSV", "Excel", "JSON"].map((fmt) => (
                   <Button
                     key={fmt}
                     onClick={() => handleExport(fmt)}
-                    className="w-full justify-start gap-3 bg-white dark:bg-[#1a2e23] text-gray-900 dark:text-[#e5e5e5] border border-gray-300 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-[#2d4a3a]"
+                    className="w-full justify-start gap-3 text-xs sm:text-sm bg-white dark:bg-[#1a2e23] text-gray-900 dark:text-[#e5e5e5] border border-gray-300 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-[#2d4a3a]"
                   >
                     <Download className="w-4 h-4" /> Export as {fmt}
                   </Button>
@@ -341,77 +344,82 @@ export function DataPetaniPage({
 
           <Button
             onClick={handleAddPetani}
-            className="gap-2 bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59] text-white hover:from-[#3d7050] hover:to-[#5a8c69]"
+            className="gap-1 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59] text-white hover:from-[#3d7050] hover:to-[#5a8c69]"
           >
-            <Plus className="w-4 h-4" /> Tambah Petani
+            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> 
+            <span>Tambah Petani</span>
           </Button>
         </div>
       </div>
 
       {/* === TABLE === */}
-      <Card className="bg-white dark:bg-[#242424] shadow-md overflow-hidden border-0">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59]">
-              <TableHead className="text-white">NO</TableHead>
-              <TableHead className="text-white">NAMA</TableHead>
-              <TableHead className="text-white">DUSUN</TableHead>
-              <TableHead className="text-white">KELOMPOK TANI</TableHead>
-              <TableHead className="text-white">USIA</TableHead>
-              <TableHead className="text-white">NO HP</TableHead>
-              <TableHead className="text-white">TOTAL LAHAN (M2)</TableHead>
-              <TableHead className="text-white">HASIL PER TAHUN (kg)</TableHead>
-              <TableHead className="text-white">HARGA JUAL PER KG</TableHead>
-              <TableHead className="text-white text-center">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {currentData.map((f, idx) => (
-              <TableRow key={f.id}>
-                <TableCell>{startIndex + idx + 1}</TableCell>
-                <TableCell>{f.nama}</TableCell>
-                <TableCell>{f.dusun}</TableCell>
-                <TableCell>{f.kelompok_tani}</TableCell>
-                <TableCell>{f.usia}</TableCell>
-                <TableCell>{f.no_hp}</TableCell>
-                <TableCell>{f.luas_lahan}</TableCell>
-                <TableCell>{f.produksi}</TableCell>
-                <TableCell>{f.harga}</TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <button onClick={() => handleView(f)} title="Lihat Detail">
-                      <Eye className="w-4 h-4 text-[#2d5f3f] hover:text-[#4a7c59]" />
-                    </button>
-                    <button onClick={() => handleEdit(f)} title="Edit">
-                      <Edit className="w-4 h-4 text-[#8b6f47] hover:text-[#a78a5e]" />
-                    </button>
-                    <button onClick={() => handleDeleteClick(f)} title="Hapus">
-                      <Trash2 className="w-4 h-4 text-red-500 hover:text-red-700" />
-                    </button>
-                  </div>
-                </TableCell>
+      <Card className="w-full bg-white dark:bg-[#242424] shadow-md overflow-hidden border-0">
+        <div className="w-full overflow-x-auto">
+          <Table className="min-w-[640px]">
+            <TableHeader>
+              <TableRow className="bg-gradient-to-r from-[#2d5f3f] to-[#4a7c59] hover:from-[#2d5f3f] hover:to-[#4a7c59]">
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap">NO</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap">NAMA</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap">DUSUN</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap hidden lg:table-cell">KELOMPOK TANI</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap">USIA</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap hidden md:table-cell">NO HP</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap hidden xl:table-cell">TOTAL LAHAN (M2)</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap hidden xl:table-cell">HASIL PER TAHUN (kg)</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm whitespace-nowrap hidden 2xl:table-cell">HARGA JUAL PER KG</TableHead>
+                <TableHead className="text-white text-xs sm:text-sm text-center whitespace-nowrap">Aksi</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {currentData.map((f, idx) => (
+                <TableRow key={f.id} className={`hover:bg-green-50 dark:hover:bg-[#1a2e23] transition-colors ${idx % 2 === 0 ? 'bg-white dark:bg-[#242424]' : 'bg-gray-50 dark:bg-[#1a2e23]'}`}>
+                  <TableCell className="text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm">{startIndex + idx + 1}</TableCell>
+                  <TableCell className="text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm font-medium">{f.nama}</TableCell>
+                  <TableCell className="text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm">{f.dusun}</TableCell>
+                  <TableCell className="hidden lg:table-cell text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm">{f.kelompok_tani}</TableCell>
+                  <TableCell className="text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm">{f.usia}</TableCell>
+                  <TableCell className="hidden md:table-cell text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm">{f.no_hp}</TableCell>
+                  <TableCell className="hidden xl:table-cell text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm">{f.luas_lahan}</TableCell>
+                  <TableCell className="hidden xl:table-cell text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm">{f.produksi}</TableCell>
+                  <TableCell className="hidden 2xl:table-cell text-gray-900 dark:text-[#e5e5e5] text-xs sm:text-sm">{f.harga}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex justify-center gap-1 sm:gap-2">
+                      <button onClick={() => handleView(f)} title="Lihat Detail" className="p-1 sm:p-1.5 hover:bg-[#2d5f3f]/10 dark:hover:bg-[#4a7c59]/20 rounded-lg transition-colors">
+                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2d5f3f] dark:text-[#4a7c59]" />
+                      </button>
+                      <button onClick={() => handleEdit(f)} title="Edit" className="p-1 sm:p-1.5 hover:bg-[#8b6f47]/10 dark:hover:bg-[#b88746]/20 rounded-lg transition-colors">
+                        <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8b6f47] dark:text-[#b88746]" />
+                      </button>
+                      <button onClick={() => handleDeleteClick(f)} title="Hapus" className="p-1 sm:p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                        <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
 
       {/* === PAGINATION === */}
-      <div className="flex justify-between items-center mt-4">
+      <div className="w-full mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
         <Button
           variant="outline"
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => p - 1)}
+          className="w-full sm:w-auto text-xs sm:text-sm border-gray-300 dark:border-white/10 dark:bg-[#1a2e23] dark:text-[#e5e5e5] dark:hover:bg-[#2d4a3a]"
         >
           Sebelumnya
         </Button>
-        <span className="text-sm text-gray-600 dark:text-gray-300">
+        <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
           Halaman {currentPage} dari {totalPages || 1}
         </span>
         <Button
           variant="outline"
           disabled={currentPage === totalPages}
           onClick={() => setCurrentPage((p) => p + 1)}
+          className="w-full sm:w-auto text-xs sm:text-sm border-gray-300 dark:border-white/10 dark:bg-[#1a2e23] dark:text-[#e5e5e5] dark:hover:bg-[#2d4a3a]"
         >
           Selanjutnya
         </Button>
@@ -425,28 +433,27 @@ export function DataPetaniPage({
       />
 
       {/* === KONFIRMASI HAPUS === */}
-      {/* === KONFIRMASI HAPUS === */}
       <AlertDialog open={!!deleteConfirmData} onOpenChange={() => setDeleteConfirmData(null)}>
-        <AlertDialogContent className="max-w-[420px] dark:bg-[#242424] dark:border-white/10">
+        <AlertDialogContent className="w-[90vw] sm:w-full max-w-[420px] dark:bg-[#242424] dark:border-white/10">
           <AlertDialogHeader>
-            <AlertDialogTitle className="dark:text-[#e5e5e5]">
+            <AlertDialogTitle className="text-base sm:text-lg dark:text-[#e5e5e5]">
               Konfirmasi Hapus Data
             </AlertDialogTitle>
-            <AlertDialogDescription className="dark:text-[#a3a3a3]">
+            <AlertDialogDescription className="text-xs sm:text-sm dark:text-[#a3a3a3]">
               Apakah Anda yakin ingin menghapus data petani{" "}
               <span className="font-semibold dark:text-[#e5e5e5]">
                 {deleteConfirmData?.nama}
               </span>? Tindakan ini tidak dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="dark:border-white/10 dark:hover:bg-[#1a2e23]">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="w-full sm:w-auto text-xs sm:text-sm dark:border-white/10 dark:hover:bg-[#1a2e23]">
               Batal
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white"
+              className="w-full sm:w-auto text-xs sm:text-sm bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white"
             >
               {isDeleting ? "Menghapus..." : "Hapus"}
             </AlertDialogAction>
@@ -456,14 +463,14 @@ export function DataPetaniPage({
 
       {/* === DETAIL PETANI === */}
       <Dialog open={!!viewDetailData} onOpenChange={() => setViewDetailData(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-[#242424] dark:border-white/10">
           <DialogHeader>
-            <DialogTitle>Detail Data Petani</DialogTitle>
-            <DialogDescription>Informasi lengkap petani kopi</DialogDescription>
+            <DialogTitle className="text-base sm:text-lg dark:text-[#e5e5e5]">Detail Data Petani</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm dark:text-[#a3a3a3]">Informasi lengkap petani kopi</DialogDescription>
           </DialogHeader>
 
           {viewDetailData && (
-            <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 text-xs sm:text-sm">
               {(() => {
                 const orderedKeys = [
                   'NO', 'NAMA', "JENIS KELAMIN", "USIA", "NO HP",
@@ -488,7 +495,7 @@ export function DataPetaniPage({
 
                 return finalOrder.map((key) => (
                   <div key={key} className="flex flex-col border-b border-gray-200 dark:border-gray-700 pb-2">
-                    <span className="font-semibold text-gray-700 dark:text-gray-300 text-xs uppercase">
+                    <span className="font-semibold text-gray-700 dark:text-gray-300 text-[10px] sm:text-xs uppercase">
                       {key}
                     </span>
                     <span className="text-gray-900 dark:text-gray-100 mt-1">

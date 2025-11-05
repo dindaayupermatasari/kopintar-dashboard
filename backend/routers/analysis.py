@@ -50,9 +50,11 @@ def load_model(path, name):
         return None
 
 
+# Load models - HANYA DUA PIPELINE UTAMA (TANPA PROXY)
 FULL_PIPELINE_PRODUK_BUDIDAYA = load_model(
     "backend/models_ai/full_pipeline_produk_budidaya.joblib", "Pipeline Produk Budidaya"
 )
+
 FULL_PIPELINE_PROFIL_PASAR = load_model(
     "backend/models_ai/full_pipeline_profil_pasar.joblib", "Pipeline Profil Pasar"
 )
@@ -76,23 +78,16 @@ def parse_harga(value):
 
     str_val = str(value).strip()
 
-    # Skip jika kosong atau dash
     if not str_val or str_val == "-":
         return np.nan
 
     try:
-        # Hapus Rp, titik, koma
         cleaned = str_val.replace("Rp", "").replace(".", "").replace(",", "").strip()
-
         if not cleaned:
             return np.nan
-
         result = float(cleaned)
-
-        # Return NaN jika tidak valid
         if np.isinf(result) or np.isnan(result) or result <= 0:
             return np.nan
-
         return result
     except (ValueError, TypeError):
         return np.nan
@@ -103,7 +98,6 @@ def parse_number(value):
     if pd.isna(value) or value is None:
         return np.nan
 
-    # Jika sudah berupa angka
     if isinstance(value, (int, float)):
         result = float(value)
         if np.isinf(result) or np.isnan(result) or result <= 0:
@@ -111,24 +105,16 @@ def parse_number(value):
         return result
 
     str_val = str(value).strip()
-
-    # Skip jika kosong atau dash
     if not str_val or str_val == "-":
         return np.nan
 
     try:
-        # Hapus semua non-numeric kecuali titik desimal
         cleaned = re.sub(r"[^\d.]", "", str_val)
-
         if not cleaned:
             return np.nan
-
         result = float(cleaned)
-
-        # Return NaN jika tidak valid
         if np.isinf(result) or np.isnan(result) or result <= 0:
             return np.nan
-
         return result
     except (ValueError, TypeError):
         return np.nan
@@ -147,7 +133,6 @@ def safe_float(value, default=0.0):
 
 def get_mode_value(series):
     """Dapatkan modus (nilai paling sering muncul)"""
-    # Hapus NaN dan string kosong
     series_clean = series.dropna()
     series_clean = series_clean[series_clean.astype(str).str.strip() != ""]
     series_clean = series_clean[series_clean.astype(str).str.strip() != "-"]
@@ -156,7 +141,6 @@ def get_mode_value(series):
         return "N/A"
 
     mode_result = series_clean.mode()
-
     if len(mode_result) > 0:
         return str(mode_result.iloc[0])
     return "N/A"
@@ -164,13 +148,11 @@ def get_mode_value(series):
 
 def get_nama_column(df):
     """Cari kolom NAMA dengan berbagai variasi"""
-    # Coba exact match dulu
     for col_name in ["NAMA", "nama", "Nama"]:
         if col_name in df.columns:
             print(f"✅ Kolom NAMA ditemukan: '{col_name}'")
             return col_name
 
-    # Coba partial match
     for col in df.columns:
         col_upper = str(col).upper()
         if "NAMA" in col_upper:
@@ -188,11 +170,8 @@ def remove_header_rows(df):
 
     rows_to_drop = []
 
-    # Hanya cek 3 baris pertama (header biasanya di awal)
     for idx in range(min(3, len(df))):
         row = df.iloc[idx]
-
-        # Cek beberapa kolom kunci saja untuk efisiensi
         key_columns = [
             "NAMA",
             "HASIL PER TAHUN (kg)",
@@ -205,11 +184,9 @@ def remove_header_rows(df):
             if col in df.columns:
                 cell_value = str(row[col]).strip().upper()
                 col_name = str(col).strip().upper()
-
                 if cell_value == col_name:
                     matching += 1
 
-        # Jika 3 dari 4 kolom kunci match, ini header row
         if matching >= 3:
             rows_to_drop.append(idx)
             print(f"⚠️ Terdeteksi baris header di index {idx}")
@@ -232,17 +209,14 @@ def clean_numeric_columns(df, numeric_cols):
         print(f"   Sebelum - Sample: {df[col].head(3).tolist()}")
         print(f"   Sebelum - Type: {df[col].dtype}")
 
-        # Terapkan parser yang sesuai
         if "HARGA" in col:
             df[col] = df[col].apply(parse_harga)
         else:
             df[col] = df[col].apply(parse_number)
 
-        # Hitung nilai valid
         valid_count = df[col].notna().sum()
         print(f"   Nilai valid: {valid_count}/{len(df)}")
 
-        # Isi NaN dengan median jika ada nilai valid
         if valid_count > 0:
             median_val = df[col].median()
             print(f"   Median: {median_val}")
@@ -257,11 +231,7 @@ def clean_numeric_columns(df, numeric_cols):
 
 
 def summarize_cluster(df, group_col, numeric_cols, categorical_cols, nama_col):
-    """Ringkasan tiap cluster
-    - Kolom numerik: dihitung dengan mean (rata-rata)
-    - Kolom kategori: dihitung dengan modus (nilai terbanyak)
-    - Kolom NAMA: ambil daftar nama petani unik
-    """
+    """Ringkasan tiap cluster"""
     summary_rows = []
 
     if group_col not in df.columns:
@@ -273,26 +243,22 @@ def summarize_cluster(df, group_col, numeric_cols, categorical_cols, nama_col):
     for cluster_id, group in grouped:
         summary = {"cluster": int(cluster_id)}
 
-        # Kolom numerik: hitung rata-rata (mean)
         for col in numeric_cols:
             if col in group.columns:
                 val = group[col].mean()
                 summary[col] = round(val, 2) if pd.notna(val) else 0
 
-        # Kolom kategori: hitung modus (nilai paling sering)
         for col in categorical_cols:
             if col in group.columns:
                 summary[col] = get_mode_value(group[col])
 
-        # Kolom NAMA: ambil daftar nama petani unik
         if nama_col and nama_col in group.columns:
             names = group[nama_col].dropna().astype(str).unique().tolist()
-            # Filter nama yang valid
             summary["daftar_petani"] = [
                 n.strip()
                 for n in names
                 if n.strip()
-                and n.strip().upper() != "NAMA"  # Skip jika header
+                and n.strip().upper() != "NAMA"
                 and n.strip() != ""
                 and n.strip() != "-"
                 and not any(
@@ -308,12 +274,58 @@ def summarize_cluster(df, group_col, numeric_cols, categorical_cols, nama_col):
     return pd.DataFrame(summary_rows)
 
 
+def inspect_pipeline_features(pipeline):
+    """Inspeksi fitur yang dibutuhkan pipeline"""
+    try:
+        preprocessor = pipeline.named_steps["preprocessor"]
+
+        # Ambil semua fitur yang dibutuhkan
+        numeric_features = []
+        categorical_features = []
+
+        for name, transformer, columns in preprocessor.transformers_:
+            if name == "num":
+                numeric_features = list(columns)
+            elif name == "cat":
+                categorical_features = list(columns)
+
+        all_features = numeric_features + categorical_features
+        print(f"📋 Fitur numerik: {numeric_features}")
+        print(f"📋 Fitur kategori: {categorical_features}")
+
+        return all_features, numeric_features, categorical_features
+    except Exception as e:
+        print(f"⚠️ Gagal inspeksi pipeline: {e}")
+        return None, None, None
+
+
+def get_cluster_label_produk_budidaya(cluster_id):
+    """Label untuk cluster produk budidaya berdasarkan cluster_id dari model KMeans"""
+    cluster_labels = {
+        0: "Petani Berkembang dan Produktivitas Stabil",
+        1: "Petani Pemula dan Produktivitas Rendah",
+        2: "Petani Efisien dan Produktivitas Tinggi",
+        3: "Petani Expert dan Produktivitas Sangat Tinggi",
+    }
+    return cluster_labels.get(cluster_id, f"Cluster {cluster_id}")
+
+
+def get_cluster_label_profil_pasar(cluster_id):
+    """Label untuk cluster profil pasar berdasarkan cluster_id dari model Agglomerative"""
+    cluster_labels = {
+        0: "Petani Berpengalaman dan Pasar Lokal",
+        1: "Petani Produktif dan Pasar Menengah",
+        2: "Petani Modern dan Pasar Premium",
+    }
+    return cluster_labels.get(cluster_id, f"Cluster {cluster_id}")
+
+
 # ======================================================
-# 🟢 CLUSTER PRODUK BUDIDAYA
+# 🟢 CLUSTER PRODUK BUDIDAYA (MENGGUNAKAN MODEL ML)
 # ======================================================
 @router.get("/cluster-produk-budidaya")
 async def cluster_produk_budidaya():
-    """Menjalankan clustering Produk Budidaya"""
+    """Clustering Produk Budidaya dengan KMeans (4 clusters)"""
     if not FULL_PIPELINE_PRODUK_BUDIDAYA:
         raise HTTPException(status_code=503, detail="Model tidak tersedia.")
 
@@ -323,43 +335,32 @@ async def cluster_produk_budidaya():
         if not rows:
             return {"message": "Tidak ada data.", "clusters": [], "total_petani": 0}
 
-        # PERBAIKAN: Jangan gunakan rows[0].keys() karena bisa ambil data sebagai header
-        # Langsung convert ke DataFrame, pandas akan otomatis ambil column names
         df = pd.DataFrame([dict(row) for row in rows])
-
         print(f"\n📊 Total data awal: {len(df)}")
-        print(f"📋 Kolom tersedia: {df.columns.tolist()}")
-        print(f"🔍 Sample data (3 baris pertama):")
-        print(df[["NO", "NAMA", "HASIL PER TAHUN (kg)", "HARGA JUAL PER KG"]].head(3))
 
-        # PERBAIKAN: Hapus baris header yang muncul sebagai data (jika ada)
         df = remove_header_rows(df)
-
-        # Validasi: Pastikan masih ada data setelah pembersihan
         if len(df) == 0:
             return {
-                "message": "Tidak ada data valid setelah pembersihan.",
+                "message": "Tidak ada data valid.",
                 "clusters": [],
                 "total_petani": 0,
             }
 
-        # Cari kolom NAMA
         nama_col = get_nama_column(df)
 
-        # Debug: Tampilkan sample data setelah pembersihan
-        print(f"\n🔍 Sample data setelah pembersihan (3 baris pertama):")
-        sample_cols = [
-            "NAMA",
-            "HASIL PER TAHUN (kg)",
-            "HARGA JUAL PER KG",
-            "POPULASI KOPI",
-        ]
-        available_cols = [col for col in sample_cols if col in df.columns]
-        if available_cols:
-            print(df[available_cols].head(3).to_string())
+        # Inspeksi fitur model
+        features_ml, numeric_features_ml, categorical_features_ml = (
+            inspect_pipeline_features(FULL_PIPELINE_PRODUK_BUDIDAYA)
+        )
+        if not features_ml:
+            raise HTTPException(
+                status_code=500, detail="Gagal mendapatkan fitur dari model"
+            )
 
-        # Definisi kolom
-        numeric_cols = [
+        print(f"✅ Model butuh {len(features_ml)} fitur: {features_ml}")
+
+        # Kolom untuk summary (lebih lengkap)
+        numeric_cols_summary = [
             "HASIL PER TAHUN (kg)",
             "TOTAL LAHAN (M2)",
             "JUMLAH LAHAN",
@@ -367,109 +368,57 @@ async def cluster_produk_budidaya():
             "POPULASI KOPI",
             "LAMA BERTANI",
         ]
-
-        # PENTING: Tambahkan kolom yang dibutuhkan model ML
-        categorical_cols = [
+        categorical_cols_summary = [
             "METODE BUDIDAYA",
             "PUPUK",
             "METODE PANEN",
             "SISTEM IRIGASI",
-            "SISTEM PENYIMPANAN",  # Ditambahkan karena model butuh ini
-            "METODE PENGOLAHAN",  # Ditambahkan karena model butuh ini
+            "SISTEM PENYIMPANAN",
+            "METODE PENGOLAHAN",
         ]
 
-        # Bersihkan kolom numerik
-        df = clean_numeric_columns(df, numeric_cols)
-
-        # Bersihkan kolom kategori
-        for col in categorical_cols:
+        # Clean data
+        df = clean_numeric_columns(df, numeric_cols_summary)
+        for col in categorical_cols_summary:
             if col not in df.columns:
-                print(f"⚠️ Kolom '{col}' tidak ditemukan, buat dengan N/A")
                 df[col] = "N/A"
             else:
-                # Isi NaN dengan modus
-                mode_val = get_mode_value(df[col])
-                df[col].fillna(mode_val, inplace=True)
+                df[col].fillna(get_mode_value(df[col]), inplace=True)
 
-        # Siapkan fitur untuk clustering
-        clustering_features = [
-            col for col in numeric_cols + categorical_cols if col in df.columns
-        ]
-        X_features = df[clustering_features].copy()
+        # Pastikan semua fitur model ada
+        for col in features_ml:
+            if col not in df.columns:
+                df[col] = 0.0 if col in numeric_features_ml else "N/A"
 
-        # Transform dan cluster
-        preprocessor = FULL_PIPELINE_PRODUK_BUDIDAYA.named_steps["preprocessor"]
-        clusterer = FULL_PIPELINE_PRODUK_BUDIDAYA.named_steps["clusterer"]
+        # Prepare features untuk model
+        X_features = df[features_ml].copy()
+        print(f"\n📊 Data untuk model: {X_features.shape}")
 
-        X_transformed = preprocessor.transform(X_features)
+        # PREDIKSI dengan model (KMeans punya .predict())
+        print("\n🤖 Prediksi dengan KMeans model...")
+        cluster_labels = FULL_PIPELINE_PRODUK_BUDIDAYA.predict(X_features)
+        df["cluster"] = cluster_labels
 
-        # Gunakan fit_predict untuk AgglomerativeClustering
-        if hasattr(clusterer, "predict"):
-            labels = clusterer.predict(X_transformed)
-        else:
-            labels = clusterer.fit_predict(X_transformed)
-
-        df["cluster"] = labels
-
-        print(f"\n🎯 Clustering selesai:")
-        print(f"   Cluster unik: {df['cluster'].unique()}")
-        print(f"   Jumlah per cluster: {df['cluster'].value_counts().to_dict()}")
+        print(f"🎯 Hasil: {sorted(df['cluster'].unique())} clusters")
+        print(f"📊 Distribusi: {df['cluster'].value_counts().sort_index().to_dict()}")
 
         # Karakteristik cluster
         cluster_characteristics = summarize_cluster(
-            df, "cluster", numeric_cols, categorical_cols, nama_col
-        )
-
-        # Ringkasan cluster
-        cluster_summary_df = (
-            df.groupby("cluster")[["HASIL PER TAHUN (kg)", "TOTAL LAHAN (M2)"]]
-            .mean()
-            .reset_index()
-            .sort_values("HASIL PER TAHUN (kg)", ascending=False)
-        )
-
-        def label_productivity(avg):
-            if avg is None or avg <= 0:
-                return "Tidak Termasuk Cluster"
-            elif avg >= 800:
-                return "Produktivitas Sangat Tinggi"
-            elif 600 <= avg < 800:
-                return "Produktivitas Tinggi"
-            elif 400 <= avg < 600:
-                return "Produktivitas Sedang"
-            elif 200 <= avg < 400:
-                return "Produktivitas Rendah"
-            else:
-                return "Sangat Rendah"
-
-        cluster_summary_df["label"] = cluster_summary_df["HASIL PER TAHUN (kg)"].apply(
-            label_productivity
-        )
-
-        # Gabungkan karakteristik dengan label
-        cluster_characteristics = cluster_characteristics.merge(
-            cluster_summary_df[["cluster", "label"]], on="cluster", how="left"
+            df, "cluster", numeric_cols_summary, categorical_cols_summary, nama_col
         )
 
         # Format output
         clusters_data = []
         petani_count = df["cluster"].value_counts().to_dict()
 
-        for _, row in cluster_summary_df.iterrows():
-            cid = int(row["cluster"])
-            char_row = cluster_characteristics[
-                cluster_characteristics["cluster"] == cid
-            ]
-
-            if len(char_row) > 0:
-                char_dict = char_row.iloc[0].to_dict()
-            else:
-                char_dict = {}
+        for _, char_row in cluster_characteristics.iterrows():
+            cid = int(char_row["cluster"])
+            char_dict = char_row.to_dict()
 
             clusters_data.append(
                 {
                     "cluster_id": cid,
-                    "label": row["label"],
+                    "label": get_cluster_label_produk_budidaya(cid),
                     "petani_count": petani_count.get(cid, 0),
                     "persentase": round((petani_count.get(cid, 0) / len(df)) * 100, 1),
                     "karakteristik": {
@@ -494,17 +443,24 @@ async def cluster_produk_budidaya():
                 }
             )
 
+        # Sort by produktivitas (untuk tampilan, bukan untuk labeling)
+        clusters_data = sorted(
+            clusters_data,
+            key=lambda x: x["karakteristik"]["avg_produktivitas_kg"],
+            reverse=True,
+        )
+
         print(f"\n✅ Berhasil membuat {len(clusters_data)} cluster")
         for cluster in clusters_data:
             print(
-                f"   Cluster {cluster['cluster_id']}: {cluster['petani_count']} petani, {len(cluster['petani_names'])} nama"
+                f"   Cluster {cluster['cluster_id']}: {cluster['label']} - {cluster['petani_count']} petani"
             )
 
         return JSONResponse(
             content=jsonable_encoder(
                 {
                     "clustering_type": "Produk & Budidaya",
-                    "model": "Hierarchical Clustering",
+                    "model": "KMeans (n_clusters=4)",
                     "total_petani": len(df),
                     "clusters": clusters_data,
                 }
@@ -512,7 +468,7 @@ async def cluster_produk_budidaya():
         )
 
     except Exception as e:
-        print(f"❌ Error cluster produk budidaya: {e}")
+        print(f"❌ Error: {e}")
         import traceback
 
         traceback.print_exc()
@@ -520,11 +476,11 @@ async def cluster_produk_budidaya():
 
 
 # ======================================================
-# 🟣 CLUSTER PROFIL PASAR
+# 🟣 CLUSTER PROFIL PASAR (MENGGUNAKAN LABELS ASLI MODEL)
 # ======================================================
 @router.get("/cluster-profil-pasar")
 async def cluster_profil_pasar():
-    """Menjalankan clustering Profil Pasar"""
+    """Clustering Profil Pasar dengan Agglomerative (3 clusters) - Menggunakan labels asli dari model"""
     if not FULL_PIPELINE_PROFIL_PASAR:
         raise HTTPException(status_code=503, detail="Model tidak tersedia.")
 
@@ -534,25 +490,13 @@ async def cluster_profil_pasar():
         if not rows:
             return {"message": "Tidak ada data.", "clusters": [], "total_petani": 0}
 
-        # PERBAIKAN: Convert dengan benar
         df = pd.DataFrame([dict(row) for row in rows])
-
         print(f"\n📊 Total data awal: {len(df)}")
-        print(f"🔍 Sample data (3 baris pertama):")
-        print(df[["NO", "NAMA", "HARGA JUAL PER KG"]].head(3))
 
-        # PENTING: Hapus baris header yang muncul sebagai data
         df = remove_header_rows(df)
-
-        # Cari kolom NAMA
         nama_col = get_nama_column(df)
 
-        # Drop baris 14 jika ada
-        if len(df) >= 14:
-            df = df.drop(df.index[13]).reset_index(drop=True)
-            print(f"📊 Data setelah drop baris 13: {len(df)}")
-
-        # Definisi kolom
+        # Kolom untuk summary
         numeric_cols = ["HARGA JUAL PER KG"]
         categorical_cols = [
             "LAMA FERMENTASI",
@@ -563,86 +507,104 @@ async def cluster_profil_pasar():
             "METODE PENGOLAHAN",
         ]
 
-        # Bersihkan kolom numerik
+        # Clean data
+        print("\n🔧 Cleaning data...")
         df = clean_numeric_columns(df, numeric_cols)
-
-        # Bersihkan kolom kategori
         for col in categorical_cols:
             if col not in df.columns:
-                print(f"⚠️ Kolom '{col}' tidak ditemukan, buat dengan N/A")
                 df[col] = "N/A"
             else:
-                mode_val = get_mode_value(df[col])
-                df[col].fillna(mode_val, inplace=True)
+                df[col].fillna(get_mode_value(df[col]), inplace=True)
 
-        # Siapkan fitur
-        clustering_features = [
-            col for col in numeric_cols + categorical_cols if col in df.columns
-        ]
-        X_clustering = df[clustering_features].copy()
+        # GUNAKAN LABELS ASLI DARI MODEL (AgglomerativeClustering tidak punya .predict())
+        print("\n🤖 Mengambil cluster labels dari model yang sudah di-fit...")
 
-        # Transform dan cluster
-        preprocessor = FULL_PIPELINE_PROFIL_PASAR.named_steps["preprocessor"]
-        clusterer = FULL_PIPELINE_PROFIL_PASAR.named_steps["clusterer"]
+        # Cek apakah model memiliki atribut labels_
+        # Coba beberapa kemungkinan nama step dalam pipeline
+        clusterer = None
+        for step_name in ["clusterer", "model", "agglomerative"]:
+            if step_name in FULL_PIPELINE_PROFIL_PASAR.named_steps:
+                clusterer = FULL_PIPELINE_PROFIL_PASAR.named_steps[step_name]
+                print(f"   ✅ Menemukan clusterer di step: '{step_name}'")
+                break
 
-        X_processed = preprocessor.transform(X_clustering)
+        if clusterer is None:
+            raise HTTPException(
+                status_code=500,
+                detail="Tidak dapat menemukan komponen clusterer dalam pipeline",
+            )
 
-        if hasattr(clusterer, "predict"):
-            labels = clusterer.predict(X_processed)
-        else:
-            labels = clusterer.fit_predict(X_processed)
+        if not hasattr(clusterer, "labels_"):
+            raise HTTPException(
+                status_code=500,
+                detail="Model belum di-fit atau tidak memiliki atribut labels_",
+            )
 
-        df["cluster"] = labels
+        # Ambil labels dari model yang sudah di-fit
+        cluster_labels = clusterer.labels_
+        print(f"   📊 Total labels dari model: {len(cluster_labels)}")
+        print(f"   🎯 Unique clusters: {sorted(np.unique(cluster_labels))}")
+
+        # VALIDASI: Pastikan jumlah data sama
+        if len(cluster_labels) != len(df):
+            print(
+                f"\n⚠️ WARNING: Jumlah labels ({len(cluster_labels)}) != jumlah data runtime ({len(df)})"
+            )
+            print("   Kemungkinan penyebab:")
+            print("   1. Data di database berbeda dengan data training")
+            print("   2. Ada data yang ditambah/dikurangi setelah model di-train")
+            print("   3. Fungsi remove_header_rows menghapus baris yang berbeda")
+
+            # Gunakan strategi: gunakan labels sesuai panjang data
+            if len(cluster_labels) > len(df):
+                print(f"   📌 Menggunakan {len(df)} labels pertama dari model")
+                cluster_labels = cluster_labels[: len(df)]
+            else:
+                print(f"   📌 Padding labels dengan cluster terakhir untuk sisa data")
+                last_cluster = cluster_labels[-1]
+                padding = np.full(len(df) - len(cluster_labels), last_cluster)
+                cluster_labels = np.concatenate([cluster_labels, padding])
+
+        # Assign cluster ke dataframe
+        df["cluster"] = cluster_labels
+
+        unique_clusters = sorted(df["cluster"].unique())
+        print(f"\n🎯 Cluster yang terpakai: {unique_clusters}")
+        print(f"📊 Distribusi cluster:")
+        cluster_counts = df["cluster"].value_counts().sort_index()
+        for cluster_id, count in cluster_counts.items():
+            print(f"   Cluster {cluster_id}: {count} petani ({count/len(df)*100:.1f}%)")
+
+        # VALIDASI: Periksa jumlah cluster
+        expected_clusters = 3
+        actual_clusters = len(unique_clusters)
+
+        if actual_clusters != expected_clusters:
+            print(
+                f"\n⚠️ WARNING: Diharapkan {expected_clusters} cluster, tapi dapat {actual_clusters}!"
+            )
+            print("   Kemungkinan penyebab:")
+            print("   1. Data di database berbeda dengan data training")
+            print("   2. Beberapa cluster tidak memiliki anggota dalam data saat ini")
+            print("   3. Model perlu di-retrain dengan data terbaru")
 
         # Karakteristik cluster
         cluster_characteristics = summarize_cluster(
             df, "cluster", numeric_cols, categorical_cols, nama_col
         )
 
-        cluster_summary_df = (
-            df.groupby("cluster")[["HARGA JUAL PER KG"]]
-            .mean()
-            .reset_index()
-            .sort_values("HARGA JUAL PER KG", ascending=False)
-        )
-
-        def label_market(avg_price):
-            if avg_price >= 75000:
-                return "Petani Berpengalaman dan Pasar Premium"
-            elif avg_price >= 74000:
-                return "Petani Modern dan Pasar Semi-Premium"
-            elif avg_price >= 73000:
-                return "Petani Konvensional dan Pasar Lokal"
-            else:
-                return "Tidak termasuk cluster"
-
-        cluster_summary_df["label"] = cluster_summary_df["HARGA JUAL PER KG"].apply(
-            label_market
-        )
-
-        cluster_characteristics = cluster_characteristics.merge(
-            cluster_summary_df[["cluster", "label"]], on="cluster", how="left"
-        )
-
         # Format output
         clusters_data = []
         petani_count = df["cluster"].value_counts().to_dict()
 
-        for _, row in cluster_summary_df.iterrows():
-            cid = int(row["cluster"])
-            char_row = cluster_characteristics[
-                cluster_characteristics["cluster"] == cid
-            ]
-
-            if len(char_row) > 0:
-                char_dict = char_row.iloc[0].to_dict()
-            else:
-                char_dict = {}
+        for _, char_row in cluster_characteristics.iterrows():
+            cid = int(char_row["cluster"])
+            char_dict = char_row.to_dict()
 
             clusters_data.append(
                 {
                     "cluster_id": cid,
-                    "label": row["label"],
+                    "label": get_cluster_label_profil_pasar(cid),
                     "petani_count": petani_count.get(cid, 0),
                     "persentase": round((petani_count.get(cid, 0) / len(df)) * 100, 1),
                     "karakteristik": {
@@ -666,25 +628,201 @@ async def cluster_profil_pasar():
                 }
             )
 
-        print(f"\n✅ Berhasil membuat {len(clusters_data)} cluster")
-
-        return JSONResponse(
-            content=jsonable_encoder(
-                {
-                    "clustering_type": "Profil Pasar",
-                    "model": "K-Means Clustering",
-                    "total_petani": len(df),
-                    "clusters": clusters_data,
-                }
-            )
+        # Sort by harga (untuk tampilan)
+        clusters_data = sorted(
+            clusters_data,
+            key=lambda x: x["karakteristik"]["avg_harga_jual"],
+            reverse=True,
         )
 
+        print(f"\n✅ Berhasil membuat {len(clusters_data)} cluster")
+        for cluster in clusters_data:
+            print(
+                f"   Cluster {cluster['cluster_id']}: {cluster['label']} - {cluster['petani_count']} petani"
+            )
+
+        # Tambahkan warning jika cluster kurang dari expected
+        response_data = {
+            "clustering_type": "Profil Pasar",
+            "model": "Agglomerative (n_clusters=3, linkage=complete)",
+            "total_petani": len(df),
+            "clusters": clusters_data,
+        }
+
+        if actual_clusters != expected_clusters:
+            response_data["warning"] = (
+                f"Model menghasilkan {actual_clusters} cluster, "
+                f"berbeda dari {expected_clusters} cluster yang diharapkan. "
+                f"Data runtime mungkin berbeda dari data training."
+            )
+
+        return JSONResponse(content=jsonable_encoder(response_data))
+
     except Exception as e:
-        print(f"❌ Error cluster profil pasar: {e}")
+        print(f"❌ Error: {e}")
         import traceback
 
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error clustering: {str(e)}")
+
+
+# ======================================================
+# 🔍 DEBUG ENDPOINTS
+# ======================================================
+@router.get("/debug/check-model-labels")
+async def check_model_labels():
+    """Endpoint debugging: Periksa cluster labels dari model asli"""
+    try:
+        if not FULL_PIPELINE_PROFIL_PASAR:
+            return {"error": "Pipeline profil pasar tidak tersedia"}
+
+        # Ambil clusterer dari pipeline
+        clusterer = None
+        step_name_found = None
+        for step_name in ["clusterer", "model", "agglomerative"]:
+            if step_name in FULL_PIPELINE_PROFIL_PASAR.named_steps:
+                clusterer = FULL_PIPELINE_PROFIL_PASAR.named_steps[step_name]
+                step_name_found = step_name
+                break
+
+        if clusterer is None:
+            return {"error": "Tidak dapat menemukan komponen clusterer dalam pipeline"}
+
+        if not hasattr(clusterer, "labels_"):
+            return {"error": "Model belum di-fit atau tidak memiliki atribut labels_"}
+
+        labels = clusterer.labels_
+        unique_labels = np.unique(labels)
+        label_counts = pd.Series(labels).value_counts().sort_index().to_dict()
+
+        return {
+            "model_type": type(clusterer).__name__,
+            "pipeline_step_name": step_name_found,
+            "total_samples_trained": len(labels),
+            "unique_clusters": unique_labels.tolist(),
+            "cluster_distribution": label_counts,
+            "expected_clusters": 3,
+            "actual_clusters": len(unique_labels),
+            "status": (
+                "OK" if len(unique_labels) == 3 else "WARNING: Cluster count mismatch"
+            ),
+        }
+
+    except Exception as e:
+        import traceback
+
+        return {"error": str(e), "traceback": traceback.format_exc()}
+
+
+@router.get("/debug/profil-pasar-analysis")
+async def debug_profil_pasar_analysis():
+    """Endpoint untuk debugging: analisis distribusi data profil pasar"""
+    try:
+        query = "SELECT * FROM data_raw;"
+        rows = await database.fetch_all(query)
+
+        df = pd.DataFrame([dict(row) for row in rows])
+        original_len = len(df)
+
+        df = remove_header_rows(df)
+        cleaned_len = len(df)
+
+        # Clean data
+        df["HARGA JUAL PER KG"] = df["HARGA JUAL PER KG"].apply(parse_harga)
+        df["HARGA JUAL PER KG"].fillna(df["HARGA JUAL PER KG"].median(), inplace=True)
+
+        # Analisis distribusi harga
+        harga_stats = {
+            "min": float(df["HARGA JUAL PER KG"].min()),
+            "max": float(df["HARGA JUAL PER KG"].max()),
+            "mean": float(df["HARGA JUAL PER KG"].mean()),
+            "median": float(df["HARGA JUAL PER KG"].median()),
+            "std": float(df["HARGA JUAL PER KG"].std()),
+            "q25": float(df["HARGA JUAL PER KG"].quantile(0.25)),
+            "q75": float(df["HARGA JUAL PER KG"].quantile(0.75)),
+        }
+
+        # Analisis fitur kategorikal
+        categorical_analysis = {}
+        categorical_cols = [
+            "LAMA FERMENTASI",
+            "PROSES PENGERINGAN",
+            "METODE PENJUALAN",
+            "BENTUK PENYIMPANAN",
+            "SISTEM PENYIMPANAN",
+            "METODE PENGOLAHAN",
+        ]
+
+        for col in categorical_cols:
+            if col in df.columns:
+                value_counts = df[col].value_counts().to_dict()
+                categorical_analysis[col] = {
+                    "unique_values": len(value_counts),
+                    "distribution": value_counts,
+                    "missing": int(df[col].isna().sum()),
+                }
+
+        # Ambil labels dari model
+        clusterer = None
+        for step_name in ["clusterer", "model", "agglomerative"]:
+            if step_name in FULL_PIPELINE_PROFIL_PASAR.named_steps:
+                clusterer = FULL_PIPELINE_PROFIL_PASAR.named_steps[step_name]
+                break
+
+        if clusterer and hasattr(clusterer, "labels_"):
+            cluster_labels = clusterer.labels_
+
+            # Sesuaikan panjang labels dengan data
+            if len(cluster_labels) > len(df):
+                cluster_labels = cluster_labels[: len(df)]
+            elif len(cluster_labels) < len(df):
+                padding = np.full(len(df) - len(cluster_labels), cluster_labels[-1])
+                cluster_labels = np.concatenate([cluster_labels, padding])
+
+            cluster_distribution = (
+                pd.Series(cluster_labels).value_counts().sort_index().to_dict()
+            )
+
+            # Analisis per cluster
+            cluster_details = {}
+            for cluster_id in sorted(set(cluster_labels)):
+                mask = cluster_labels == cluster_id
+                cluster_data = df[mask]
+
+                cluster_details[int(cluster_id)] = {
+                    "count": int(mask.sum()),
+                    "percentage": round(mask.sum() / len(df) * 100, 2),
+                    "avg_harga": round(cluster_data["HARGA JUAL PER KG"].mean(), 2),
+                    "min_harga": round(cluster_data["HARGA JUAL PER KG"].min(), 2),
+                    "max_harga": round(cluster_data["HARGA JUAL PER KG"].max(), 2),
+                }
+        else:
+            cluster_distribution = {}
+            cluster_details = {}
+
+        return {
+            "data_info": {
+                "original_rows": original_len,
+                "after_header_removal": cleaned_len,
+                "rows_removed": original_len - cleaned_len,
+            },
+            "total_data": len(df),
+            "harga_statistics": harga_stats,
+            "categorical_features": categorical_analysis,
+            "cluster_distribution": cluster_distribution,
+            "cluster_details": cluster_details,
+            "expected_clusters": 3,
+            "actual_clusters": len(cluster_distribution),
+            "model_info": {
+                "type": "Agglomerative Clustering",
+                "uses_original_labels": True,
+            },
+        }
+
+    except Exception as e:
+        import traceback
+
+        return {"error": str(e), "traceback": traceback.format_exc()}
 
 
 # ======================================================
@@ -697,7 +835,6 @@ async def get_clustering_summary():
         produk_budidaya = await cluster_produk_budidaya()
         profil_pasar = await cluster_profil_pasar()
 
-        # Extract data dari JSONResponse
         import json
 
         produk_data = (
@@ -734,13 +871,12 @@ async def get_clustering_summary():
 # ======================================================
 @router.post("/recommendation")
 async def get_recommendation(request: RecommendationRequest):
-    """Memberikan rekomendasi berbasis AI menggunakan Gemini dengan output yang konsisten."""
+    """Memberikan rekomendasi berbasis AI menggunakan Gemini"""
     if not GEMINI_MODEL:
         raise HTTPException(
             status_code=503, detail="Model rekomendasi (Gemini) tidak tersedia."
         )
 
-    # Format detail petani dengan lebih rapi
     detail_str = ""
     if request.detail_petani:
         detail_str = "\n".join(
@@ -854,11 +990,9 @@ PENTING:
 async def get_wordcloud_data():
     """Word cloud dari kolom masalah petani + laporan masalah yang VALID."""
 
-    # Ambil dari tabel petani
     query1 = 'SELECT "MASALAH" as text FROM data_raw WHERE "MASALAH" IS NOT NULL AND "MASALAH" <> \'\';'
     rows1 = await database.fetch_all(query1)
 
-    # Ambil dari laporan_masalah yang sudah divalidasi
     query2 = "SELECT masalah as text FROM laporan_masalah WHERE masalah IS NOT NULL AND status = 'valid';"
     rows2 = await database.fetch_all(query2)
 
@@ -1027,7 +1161,7 @@ async def get_laporan_masalah(limit: int = 50, status: str = None):
 
 @router.get("/laporan-masalah/pending")
 async def get_pending_laporan():
-    """Endpoint khusus untuk mengambil laporan yang belum divalidasi (untuk sistem otomatis WA)."""
+    """Endpoint khusus untuk mengambil laporan yang belum divalidasi."""
     query = """
     SELECT id, nama_petani, masalah, detail_petani, created_at
     FROM laporan_masalah
@@ -1040,10 +1174,7 @@ async def get_pending_laporan():
 
 @router.post("/laporan-masalah/validate")
 async def validate_laporan(request: ValidateLaporanRequest):
-    """
-    Endpoint untuk validasi laporan (digunakan oleh sistem internal/admin).
-    Tidak perlu tampil di frontend website.
-    """
+    """Endpoint untuk validasi laporan (sistem internal/admin)."""
     if request.status not in ["valid", "invalid"]:
         raise HTTPException(
             status_code=400, detail="Status harus 'valid' atau 'invalid'"
@@ -1091,8 +1222,12 @@ async def health_check():
     return {
         "status": "healthy",
         "models": {
-            "produk_budidaya": FULL_PIPELINE_PRODUK_BUDIDAYA is not None,
-            "profil_pasar": FULL_PIPELINE_PROFIL_PASAR is not None,
+            "produk_budidaya_kmeans": FULL_PIPELINE_PRODUK_BUDIDAYA is not None,
+            "profil_pasar_agglomerative": FULL_PIPELINE_PROFIL_PASAR is not None,
             "gemini": GEMINI_MODEL is not None,
+        },
+        "info": {
+            "produk_budidaya": "KMeans (4 clusters, Silhouette=0.4779)",
+            "profil_pasar": "Agglomerative (3 clusters, Silhouette=0.3372) - Using Original Labels",
         },
     }

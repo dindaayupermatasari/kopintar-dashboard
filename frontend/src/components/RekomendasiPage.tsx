@@ -68,7 +68,6 @@ export function RekomendasiPage() {
 
     try {
       const detailPetaniObj = additionalInfo.trim() === "" ? {} : parseAdditionalInfo(additionalInfo);
-
       const res = await getRecommendation(chatInput, detailPetaniObj);
       const aiResponse = formatRecommendation(res.recommendation);
 
@@ -98,18 +97,16 @@ export function RekomendasiPage() {
 
     try {
       const detailPetaniObj = additionalInfo.trim() === "" ? {} : parseAdditionalInfo(additionalInfo);
-      
       await submitLaporanMasalah(newProblem, namaPetani, detailPetaniObj);
-      
       setSubmitStatus("success");
       setNamaPetani("");
       setNewProblem("");
       setAdditionalInfo("");
-      
+
       // Refresh wordcloud data
       const masalahRes = await api.get("/analysis/wordcloud-data");
       if (Array.isArray(masalahRes.data)) setWordCloudWords(masalahRes.data);
-      
+
       setTimeout(() => setSubmitStatus("idle"), 3000);
     } catch (err) {
       console.error(err);
@@ -119,65 +116,59 @@ export function RekomendasiPage() {
   };
 
   return (
-    <div className="dark:text-gray-100 w-full">
+    <div className="w-full min-w-0 space-y-6 sm:space-y-8 transition-colors duration-300">
       {/* Header */}
-      <div className="w-full mb-8">
-        <h1 className="text-[#2d5f3f] dark:text-green-400 mb-2 text-2xl font-bold">
+      <div className="w-full min-w-0 mb-4 sm:mb-6">
+        <h1 className="text-[#2d5f3f] dark:text-[#b88746] mb-2">
           Rekomendasi Permasalahan Petani
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-600 dark:text-[#a3a3a3] text-sm sm:text-base">
           Laporkan permasalahan, dapatkan rekomendasi AI, dan lihat tren masalah terkini petani kopi.
         </p>
       </div>
 
       {/* Form Masalah Baru */}
-      <Card className="p-6 bg-gradient-to-br from-green-50 to-white dark:from-gray-800 dark:to-gray-700 border-2 border-dashed border-[#2d5f3f] dark:border-green-600 w-full mb-8">
+      <Card className="w-full min-w-0 p-4 sm:p-6 bg-white dark:bg-[#242424] border-2 border-dashed border-[#2d5f3f] dark:border-[#4a7c59] shadow-lg">
         <div className="flex items-center gap-2 mb-4">
-          <Plus className="w-5 h-5 text-[#2d5f3f] dark:text-green-400" />
-          <h3 className="text-[#2d5f3f] dark:text-green-400 font-semibold">
+          <Plus className="w-5 h-5 text-[#2d5f3f] dark:text-[#b88746]" />
+          <h3 className="text-[#2d5f3f] dark:text-[#b88746]">
             Laporkan Masalah Baru
           </h3>
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          Deskripsikan masalah yang Anda hadapi di kebun kopi Anda. Laporan akan disimpan untuk analisis lebih lanjut.
-        </p>
 
-        {/* Field Nama Petani */}
         <div className="mb-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm text-gray-700 dark:text-[#d4d4d4] mb-2">
             Nama Petani <span className="text-red-500">*</span>
           </label>
           <Input
             placeholder="Contoh: Pak Budi"
             value={namaPetani}
             onChange={(e) => setNamaPetani(e.target.value)}
-            className="border-gray-300 dark:border-gray-600 focus:border-[#2d5f3f] dark:focus:border-green-600"
+            className="border-gray-300 dark:border-white/10 dark:bg-[#1a1a1a] dark:text-[#e5e5e5]"
           />
         </div>
 
-        {/* Field Masalah */}
         <div className="mb-3">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm text-gray-700 dark:text-[#d4d4d4] mb-2">
             Deskripsi Masalah <span className="text-red-500">*</span>
           </label>
           <Input
             placeholder="Contoh: Tanaman kopi saya terserang hama penggerek buah..."
             value={newProblem}
             onChange={(e) => setNewProblem(e.target.value)}
-            className="border-gray-300 dark:border-gray-600 focus:border-[#2d5f3f] dark:focus:border-green-600"
+            className="border-gray-300 dark:border-white/10 dark:bg-[#1a1a1a] dark:text-[#e5e5e5]"
           />
         </div>
 
-        {/* Field Detail Tambahan */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm text-gray-700 dark:text-[#d4d4d4] mb-2">
             Detail Tambahan (Opsional)
           </label>
           <Textarea
             placeholder="Format: key: value&#10;Contoh:&#10;Lokasi: Sumbersari&#10;Luas Lahan: 2 hektar&#10;Varietas: Arabika"
             value={additionalInfo}
             onChange={(e) => setAdditionalInfo(e.target.value)}
-            className="border-gray-300 dark:border-gray-600 focus:border-[#2d5f3f] dark:focus:border-green-600 resize-none"
+            className="border-gray-300 dark:border-white/10 dark:bg-[#1a1a1a] dark:text-[#e5e5e5] resize-none"
             rows={4}
           />
         </div>
@@ -207,22 +198,23 @@ export function RekomendasiPage() {
       </Card>
 
       {/* Chat Asisten AI */}
-      <Card className="p-6 bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-gray-700 shadow-lg border-0 w-full mb-8">
+      <Card className="w-full min-w-0 p-4 sm:p-6 bg-white dark:bg-[#242424] shadow-xl border-0 transition-colors duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] rounded-xl flex items-center justify-center shadow-lg">
+          <div className="w-12 h-12 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
             <Bot className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-gray-900 dark:text-gray-100 font-semibold">
+            <h2 className="text-gray-900 dark:text-[#e5e5e5]">
               Tanya Asisten AI
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-[#a3a3a3]">
               Dapatkan rekomendasi dan solusi berbasis AI untuk masalah perkebunan kopi
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 mb-4 h-[400px] overflow-y-auto border border-gray-100 dark:border-gray-700 shadow-inner">
+        {/* Chat Box */}
+        <div className="bg-gray-50 dark:bg-[#121212] rounded-xl p-4 mb-4 h-[400px] overflow-y-auto border border-gray-200 dark:border-gray-700 shadow-inner transition-colors duration-300">
           <div className="space-y-4">
             {chatMessages.map((msg, index) => (
               <div
@@ -240,56 +232,12 @@ export function RekomendasiPage() {
                   className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                     msg.role === "user"
                       ? "bg-gradient-to-r from-[#8b6f47] to-[#a78a5e] text-white"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      : "bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] text-white shadow-sm"
                   }`}
                 >
-                  {msg.role === "ai" ? (
-                    <div className="text-sm leading-relaxed space-y-4">
-                      {msg.message.split('\n\n').map((section, idx) => {
-                        const lines = section.split('\n');
-                        const title = lines[0];
-                        const content = lines.slice(1);
-                        
-                        return (
-                          <div key={idx} className="space-y-2">
-                            <div className="font-black text-[17px] text-gray-900 dark:text-white tracking-tight">
-                              {title}
-                            </div>
-                            
-                            <div className="space-y-1.5 text-gray-700 dark:text-gray-300">
-                              {content.map((line, lineIdx) => {
-                                if (!line.trim()) return null;
-                                
-                                if (line.trim().startsWith('•')) {
-                                  return (
-                                    <div key={lineIdx} className="pl-8 text-gray-600 dark:text-gray-400 text-sm">
-                                      {line.trim()}
-                                    </div>
-                                  );
-                                }
-                                
-                                if (line.startsWith('   ') && !line.trim().startsWith('•')) {
-                                  return (
-                                    <div key={lineIdx} className="pl-6 text-gray-600 dark:text-gray-400 text-sm">
-                                      {line.trim()}
-                                    </div>
-                                  );
-                                }
-                                
-                                return (
-                                  <div key={lineIdx}>
-                                    {line}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-sm leading-relaxed whitespace-pre-line">{msg.message}</p>
-                  )}
+                  <p className="text-sm leading-relaxed whitespace-pre-line">
+                    {msg.message}
+                  </p>
                 </div>
                 {msg.role === "user" && (
                   <div className="w-8 h-8 bg-gradient-to-br from-[#8b6f47] to-[#a78a5e] rounded-lg flex items-center justify-center flex-shrink-0">
@@ -298,16 +246,17 @@ export function RekomendasiPage() {
                 )}
               </div>
             ))}
+
             {isLoading && (
               <div className="flex justify-start gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] rounded-lg flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-2xl px-4 py-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                <div className="bg-gradient-to-br from-[#2d5f3f] to-[#4a7c59] rounded-2xl px-4 py-3 text-sm">
+                  <div className="flex gap-2">
+                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
                   </div>
                 </div>
               </div>
@@ -323,7 +272,7 @@ export function RekomendasiPage() {
             onChange={(e) => setChatInput(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSendChat()}
             disabled={isLoading}
-            className="flex-1 border-gray-300 dark:border-gray-600 focus:border-[#2d5f3f] dark:focus:border-green-600"
+            className="flex-1 border-gray-300 dark:border-white/10 dark:bg-[#1a1a1a] dark:text-[#e5e5e5]"
           />
           <Button
             onClick={handleSendChat}
@@ -336,97 +285,81 @@ export function RekomendasiPage() {
       </Card>
 
       {/* Wordcloud Section */}
-      <div className="w-full">
-        <div className="grid grid-cols-2 gap-6">
+      <div className="w-full min-w-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Wordcloud Masalah */}
-          <div className="w-full min-w-0">
-            <Card className="p-6 bg-white dark:bg-gray-800 shadow-md border-0 h-full">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-[#8b6f47] dark:text-[#b88746]" />
-                <h3 className="text-gray-900 dark:text-gray-100 font-semibold">
-                  Wordcloud Masalah Petani
-                </h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Visualisasi kata-kata yang paling sering muncul dalam laporan masalah petani kopi
-              </p>
-              <div className="relative h-[400px] bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-gray-700">
-                {wordCloudWords.length > 0 ? (
-                  <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-3 p-6">
-                    {wordCloudWords.map((word, index) => {
-                      const fontSize = Math.max(12, Math.min(40, 12 + word.value * 1.2));
-                      const hue = (index * 37) % 360;
-                      return (
-                        <span
-                          key={index}
-                          className="transition-all duration-200 hover:scale-110 cursor-pointer select-none"
-                          style={{
-                            fontSize: `${fontSize}px`,
-                            color: `hsl(${hue}, 65%, 45%)`,
-                            fontWeight: word.value > 15 ? 700 : word.value > 8 ? 600 : 500,
-                            textShadow: "0 1px 2px rgba(0,0,0,0.1)",
-                          }}
-                          title={`${word.text}: ${word.value} kali`}
-                        >
-                          {word.text}
-                        </span>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <p className="text-gray-400 dark:text-gray-500 mb-2">Memuat data...</p>
-                    <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-[#2d5f3f] rounded-full mx-auto"></div>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
+          <Card className="w-full p-4 sm:p-6 bg-white dark:bg-[#242424] shadow-xl border-0">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-[#8b6f47] dark:text-[#b88746]" />
+              <h3 className="text-gray-900 dark:text-[#e5e5e5]">
+                Wordcloud Masalah Petani
+              </h3>
+            </div>
+            <div className="relative h-[400px] bg-gray-50 dark:bg-[#121212] rounded-xl p-4 flex items-center justify-center border dark:border-gray-700">
+              {wordCloudWords.length > 0 ? (
+                <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-3 p-6">
+                  {wordCloudWords.map((word, i) => {
+                    const fontSize = Math.max(12, Math.min(40, 12 + word.value * 1.2));
+                    const hue = 30 + (i * 15) % 60;
+                    return (
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: `${fontSize}px`,
+                          color: `hsl(${hue}, 65%, 45%)`,
+                          fontWeight: word.value > 15 ? 700 : word.value > 8 ? 600 : 500,
+                        }}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        {word.text}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center text-gray-400 dark:text-gray-500">
+                  Memuat data...
+                </div>
+              )}
+            </div>
+          </Card>
 
           {/* Wordcloud Pelatihan */}
-          <div className="w-full min-w-0">
-            <Card className="p-6 bg-white dark:bg-gray-800 shadow-md border-0 h-full">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5 text-[#8b6f47] dark:text-[#b88746]" />
-                <h3 className="text-gray-900 dark:text-gray-100 font-semibold">
-                  Wordcloud Pelatihan yang Dibutuhkan
-                </h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Jenis pelatihan yang paling banyak dibutuhkan oleh petani kopi
-              </p>
-              <div className="relative h-[400px] bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-gray-700">
-                {wordCloudPelatihan.length > 0 ? (
-                  <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-3 p-6">
-                    {wordCloudPelatihan.map((word, index) => {
-                      const fontSize = Math.max(12, Math.min(40, 12 + word.value * 1.2));
-                      const hue = (index * 47 + 180) % 360;
-                      return (
-                        <span
-                          key={index}
-                          className="transition-all duration-200 hover:scale-110 cursor-pointer select-none"
-                          style={{
-                            fontSize: `${fontSize}px`,
-                            color: `hsl(${hue}, 65%, 45%)`,
-                            fontWeight: word.value > 15 ? 700 : word.value > 8 ? 600 : 500,
-                            textShadow: "0 1px 2px rgba(0,0,0,0.1)",
-                          }}
-                          title={`${word.text}: ${word.value} kali`}
-                        >
-                          {word.text}
-                        </span>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <p className="text-gray-400 dark:text-gray-500 mb-2">Memuat data...</p>
-                    <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-[#2d5f3f] rounded-full mx-auto"></div>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
+          <Card className="w-full p-4 sm:p-6 bg-white dark:bg-[#242424] shadow-xl border-0">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-[#8b6f47] dark:text-[#b88746]" />
+              <h3 className="text-gray-900 dark:text-[#e5e5e5]">
+                Wordcloud Pelatihan yang Dibutuhkan
+              </h3>
+            </div>
+            <div className="relative h-[400px] bg-gray-50 dark:bg-[#121212] rounded-xl p-4 flex items-center justify-center border dark:border-gray-700">
+              {wordCloudPelatihan.length > 0 ? (
+                <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-3 p-6">
+                  {wordCloudPelatihan.map((word, i) => {
+                    const fontSize = Math.max(12, Math.min(40, 12 + word.value * 1.2));
+                    const hue = 90 + (i * 20) % 80;
+                    return (
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: `${fontSize}px`,
+                          color: `hsl(${hue}, 65%, 45%)`,
+                          fontWeight: word.value > 15 ? 700 : word.value > 8 ? 600 : 500,
+                        }}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        {word.text}
+                      </span>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center text-gray-400 dark:text-gray-500">
+                  Memuat data...
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
       </div>
     </div>
