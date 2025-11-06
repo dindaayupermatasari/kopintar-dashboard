@@ -89,6 +89,23 @@ export function HomePage() {
     "#d97706", "#c9a96e", "#3d6b4a", "#9d8860",
   ]; 
 
+  // FUNGSI BARU: Menggabungkan data dengan nama yang sama
+  const groupDataByName = (data: any[]) => {
+    const grouped = new Map();
+    
+    data.forEach(item => {
+      const normalizedName = toTitleCase((item.name || '').toString().trim());
+      
+      if (grouped.has(normalizedName)) {
+        grouped.set(normalizedName, grouped.get(normalizedName) + item.value);
+      } else {
+        grouped.set(normalizedName, item.value);
+      }
+    });
+    
+    return Array.from(grouped, ([name, value]) => ({ name, value }));
+  };
+
   // Filter data valid
   const filterValidData = (data: any[]) => {
     return data.filter(item => {
@@ -156,15 +173,15 @@ export function HomePage() {
         setSummary(summaryData);
 
         setPieCharts({
-          jenisKopi: filterValidData(jenisKopi.map((d: any) => ({ name: d.kategori, value: d.jumlah }))).map(item => ({ ...item, name: toTitleCase(item.name) })),
-          metodePanen: filterValidData(metodePanen.map((d: any) => ({ name: d.kategori, value: d.jumlah }))).map(item => ({ ...item, name: toTitleCase(item.name) })),
-          metodePengolahan: filterValidData(metodePengolahan.map((d: any) => ({ name: d.kategori, value: d.jumlah }))).map(item => ({ ...item, name: toTitleCase(item.name) })),
-          metodePenjualan: filterValidData(metodePenjualan.map((d: any) => ({ name: d.kategori, value: d.jumlah }))).map(item => ({ ...item, name: toTitleCase(item.name) })),
+          jenisKopi: groupDataByName(filterValidData(jenisKopi.map((d: any) => ({ name: d.kategori, value: d.jumlah })))),
+          metodePanen: groupDataByName(filterValidData(metodePanen.map((d: any) => ({ name: d.kategori, value: d.jumlah })))),
+          metodePengolahan: groupDataByName(filterValidData(metodePengolahan.map((d: any) => ({ name: d.kategori, value: d.jumlah })))),
+          metodePenjualan: groupDataByName(filterValidData(metodePenjualan.map((d: any) => ({ name: d.kategori, value: d.jumlah })))),
         });
 
         setBarCharts({
-          varietasKopi: filterValidData(varietasKopi.map((d: any) => ({ name: d.varietas, value: d.jumlah }))).map(item => ({ ...item, name: toTitleCase(item.name) })),
-          kelompokVsHasil: filterValidData(kelompokHasil.map((d: any) => ({ name: d.kelompok, value: d.total_hasil }))).map(item => ({ ...item, name: toTitleCase(item.name) })),
+          varietasKopi: groupDataByName(filterValidData(varietasKopi.map((d: any) => ({ name: d.varietas, value: d.jumlah })))),
+          kelompokVsHasil: groupDataByName(filterValidData(kelompokHasil.map((d: any) => ({ name: d.kelompok, value: d.total_hasil })))),
         });
       } catch (err) {
         console.error("Gagal memuat data dashboard:", err);
@@ -453,29 +470,31 @@ export function HomePage() {
       <div className="max-w-[1600px] mx-auto">
         
         {/* HEADER */}
-        <div className="mb-8 relative overflow-hidden rounded-2xl p-8 text-white shadow-2xl bg-[#2d5f3f] dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800">
-          <div className="absolute top-0 right-0 w-56 h-56 opacity-10">
-            <Coffee className="w-full h-full text-white" />
-          </div>
-          <div className="relative z-10">
-            <h1 className="text-3xl font-bold mb-2 text-white drop-shadow-lg">
-              Dashboard Monitoring Produksi Kopi
-            </h1>
-            <div className="flex items-center text-white text-lg">
-              <MapPin className="w-6 h-6 mr-2" />
-              <span className="font-medium">Kecamatan Doko, Kabupaten Blitar</span>
-            </div>
-            <div className="mt-4">
-              <div className="inline-block px-4 py-2 rounded-lg border border-white bg-white/15 dark:bg-white/10 dark:border-gray-400">
-                <p className="text-xs text-white">Update Terakhir</p>
-                <p className="text-sm font-semibold text-white">
-                  {new Date().toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
+        <div className="mb-8 relative overflow-visible rounded-2xl p-8 text-white shadow-2xl bg-[#2d5f3f] dark:bg-gradient-to-br dark:from-gray-700 dark:to-gray-800">
+          <div className="flex items-center justify-between gap-8">
+            <div className="relative z-10 flex-1">
+              <h1 className="text-3xl font-bold mb-2 text-white drop-shadow-lg">
+                Dashboard Monitoring Produksi Kopi
+              </h1>
+              <div className="flex items-center text-white text-lg">
+                <MapPin className="w-6 h-6 mr-2" />
+                <span className="font-medium">Kecamatan Doko, Kabupaten Blitar</span>
               </div>
+              <div className="mt-4">
+                <div className="inline-block px-4 py-2 rounded-lg border border-white bg-white/15 dark:bg-white/10 dark:border-gray-400">
+                  <p className="text-xs text-white">Update Terakhir</p>
+                  <p className="text-sm font-semibold text-white">
+                    {new Date().toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-center opacity-30 dark:opacity-25">
+              <Coffee style={{ width: '150px', height: '150px' }} className="text-white" />
             </div>
           </div>
         </div>

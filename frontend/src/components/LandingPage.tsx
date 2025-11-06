@@ -60,11 +60,9 @@ export function LandingPage({ onEnter }: LandingPageProps) {
               Kopintar
             </h1>
             <h2 className="text-gray-700 mb-6">
-              Dashboard Analitik dan Monitoring Produksi Kopi Berbasis AI
-            </h2>
-            <p className="text-gray-600 mb-2">
+              Dashboard Analitik dan Monitoring Produksi Kopi Berbasis AI 
               di Kecamatan Doko, Kabupaten Blitar, Jawa Timur
-            </p>
+            </h2>
             <p className="text-gray-600 mb-8 leading-relaxed">
               Platform monitoring dan analisis produktivitas petani kopi yang menggunakan teknologi AI untuk memberikan insight dan rekomendasi yang akurat, membantu meningkatkan kesejahteraan petani kopi di Indonesia.
             </p>

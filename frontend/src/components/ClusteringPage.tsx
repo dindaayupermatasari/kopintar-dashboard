@@ -361,7 +361,7 @@ export function ClusteringPage() {
                       <Badge className="bg-white text-[#2d5f3f] hover:bg-white text-sm sm:text-base px-3 py-1">
                         Cluster {cluster.cluster_id}
                       </Badge>
-                      <h4 className="text-white font-semibold text-sm sm:text-lg">{cluster.label}</h4>
+                      <h4 className="text-white font-bold text-base sm:text-xl lg:text-2xl">{cluster.label}</h4>
                     </div>
                     <Badge className="bg-white/20 text-white hover:bg-white/20 border-white/40 text-xs sm:text-sm px-3 py-1 w-fit">
                       {cluster.petani_count} Petani
@@ -534,8 +534,8 @@ export function ClusteringPage() {
                       <Badge className="bg-white text-[#8b6f47] hover:bg-white text-sm sm:text-base px-3 py-1">
                         Cluster {cluster.cluster_id}
                       </Badge>
-                      <h4 className="text-white font-semibold text-sm sm:text-lg">{cluster.label}</h4>
-                    </div>
+                      <h4 className="text-white font-bold text-base sm:text-xl lg:text-2xl">{cluster.label}</h4>
+                    </div>S
                     <Badge className="bg-white/20 text-white hover:bg-white/20 border-white/40 text-xs sm:text-sm px-3 py-1 w-fit">
                       {cluster.petani_count} Petani
                     </Badge>
