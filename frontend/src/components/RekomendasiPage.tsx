@@ -295,11 +295,11 @@ export function RekomendasiPage() {
                 Wordcloud Masalah Petani
               </h3>
             </div>
-            <div className="relative h-[400px] bg-gray-50 dark:bg-[#121212] rounded-xl p-4 flex items-center justify-center border dark:border-gray-700">
+            <div className="relative h-[500px] sm:h-[550px] bg-gray-50 dark:bg-[#121212] rounded-xl border dark:border-gray-700 overflow-hidden">
               {wordCloudWords.length > 0 ? (
-                <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-3 p-6">
+                <div className="absolute inset-0 p-6 flex flex-wrap content-center justify-center gap-3 overflow-y-auto">
                   {wordCloudWords.map((word, i) => {
-                    const fontSize = Math.max(12, Math.min(40, 12 + word.value * 1.2));
+                    const fontSize = Math.max(16, Math.min(52, 16 + word.value * 1.3));
                     const hue = 30 + (i * 15) % 60;
                     return (
                       <span
@@ -308,8 +308,10 @@ export function RekomendasiPage() {
                           fontSize: `${fontSize}px`,
                           color: `hsl(${hue}, 65%, 45%)`,
                           fontWeight: word.value > 15 ? 700 : word.value > 8 ? 600 : 500,
+                          lineHeight: 1.2,
                         }}
-                        className="hover:scale-110 transition-transform"
+                        className="hover:scale-110 transition-transform cursor-pointer select-none flex-shrink-0"
+                        title={`${word.text}: ${word.value}`}
                       >
                         {word.text}
                       </span>
@@ -317,7 +319,7 @@ export function RekomendasiPage() {
                   })}
                 </div>
               ) : (
-                <div className="text-center text-gray-400 dark:text-gray-500">
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
                   Memuat data...
                 </div>
               )}
@@ -332,11 +334,11 @@ export function RekomendasiPage() {
                 Wordcloud Pelatihan yang Dibutuhkan
               </h3>
             </div>
-            <div className="relative h-[400px] bg-gray-50 dark:bg-[#121212] rounded-xl p-4 flex items-center justify-center border dark:border-gray-700">
+            <div className="relative h-[500px] sm:h-[550px] bg-gray-50 dark:bg-[#121212] rounded-xl border dark:border-gray-700 overflow-hidden">
               {wordCloudPelatihan.length > 0 ? (
-                <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-3 p-6">
+                <div className="absolute inset-0 p-6 flex flex-wrap content-center justify-center gap-3 overflow-y-auto">
                   {wordCloudPelatihan.map((word, i) => {
-                    const fontSize = Math.max(12, Math.min(40, 12 + word.value * 1.2));
+                    const fontSize = Math.max(16, Math.min(52, 16 + word.value * 1.3));
                     const hue = 90 + (i * 20) % 80;
                     return (
                       <span
@@ -345,8 +347,10 @@ export function RekomendasiPage() {
                           fontSize: `${fontSize}px`,
                           color: `hsl(${hue}, 65%, 45%)`,
                           fontWeight: word.value > 15 ? 700 : word.value > 8 ? 600 : 500,
+                          lineHeight: 1.2,
                         }}
-                        className="hover:scale-110 transition-transform"
+                        className="hover:scale-110 transition-transform cursor-pointer select-none flex-shrink-0"
+                        title={`${word.text}: ${word.value}`}
                       >
                         {word.text}
                       </span>
@@ -354,7 +358,7 @@ export function RekomendasiPage() {
                   })}
                 </div>
               ) : (
-                <div className="text-center text-gray-400 dark:text-gray-500">
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
                   Memuat data...
                 </div>
               )}

@@ -88,14 +88,14 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#faf9f7] dark:bg-[#121212]">
+    <div className="flex min-h-screen bg-[#faf9f7] dark:bg-[#121212] w-full">
       <Sidebar 
         currentPage={currentPage} 
         onNavigate={setCurrentPage}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'lg:ml-[280px]' : 'lg:ml-0'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 w-full transition-all duration-300 ${isSidebarOpen ? 'lg:ml-[280px]' : 'lg:ml-0'}`}>
         <Header 
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           isSidebarOpen={isSidebarOpen}
@@ -104,7 +104,7 @@ export default function App() {
           onLogout={handleLogout}
           isLoggedIn={isLoggedIn} // ✅ Pass isLoggedIn state
         />
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 p-2 sm:p-4 lg:p-6 w-full max-w-full overflow-x-hidden">
           {renderPage()}
         </main>
       </div>

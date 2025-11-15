@@ -27,7 +27,7 @@ export function Header({
 }: HeaderProps) {
 
   return (
-    <header className="bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-white/10 px-6 py-4 shadow-sm sticky top-0 z-30">
+    <header className="bg-white dark:bg-[#242424] border-b border-gray-200 dark:border-white/10 px-4 sm:px-6 py-4 shadow-md sticky top-0 z-40 backdrop-blur-sm bg-white/95 dark:bg-[#242424]/95">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button 
